@@ -1,0 +1,15 @@
+name: Docker Image CI for GHCR
+
+on:
+  push
+
+jobs:
+  build_and_publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and push the image
+        run: |
+          docker login --username TBen2000 --password ${{ secrets.GH_PAT }} ghcr.io
+          docker build kv-stuttgart_jungschartag --tag ghcr.io/TBen2000/pretix2nextcloud-kv-stuttgart-jungschartag:latest
+          docker push ghcr.io/TBen2000/pretix2nextcloud-kv-stuttgart-jungschartag:latest
