@@ -6,6 +6,8 @@ This tool retrieves registration data for a specific event from Pretix, compiles
 ### Step 1:
 Install Docker from https://docs.docker.com/get-docker/
 
+<br>
+
 ### Step 2:
 Create a new file called `.env` and store your environment variables there like this:
 
@@ -23,18 +25,28 @@ Create a new file called `.env` and store your environment variables there like 
 > [!NOTE]  
 > NEXTCLOUD_PASSWORD takes leading and trailing whitespaces into account. Make sure there are none if your password doesn't contain them.
 
-If you want to encode your environment variables with base64, you need to use the prefix `BASE64:` like e.g. `BASE64:TXlTZWN1cmVQYXNzd29yZDEyMyE=`.
+<br>
+
+If you want to encode your environment variables with base64, you need to use the prefix `BASE64:` like e.g. 
+
+    NEXTCLOUD_PASSWORD=BASE64:TXlTZWN1cmVQYXNzd29yZDEyMyE=
 
 > [!WARNING]  
 > Base64 is not a form of encryption and provides no meaningful security. It merely obscures the value to avoid storing secrets in plain text, reducing the chance that someone running the Docker image will casually see them.
+
+<br>
 
 ### Step 3:
 Run desired docker image with following command:
 
     docker run --name p2n-kv-stuttgart-jungschartag -d --restart unless-stopped --env-file .env ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag:latest
 
+<br>
+
 ### Step 4:
 Delete `.env` file after starting the container to avoid leaking sensitive data.
+
+<br>
 
 ### Alternative for advandced users:
 If you're running Docker Swarm and want to use docker secrets instead of environment variables for sensitive data like API tokens and passwords, use following names for the secrets:
