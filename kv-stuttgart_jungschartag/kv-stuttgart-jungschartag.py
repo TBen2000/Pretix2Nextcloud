@@ -29,7 +29,7 @@ logging.basicConfig(level=LOGGING_LEVEL)
 success_on_last_run = False  # Track if the last run was successful
 
 
-def get_env(name: str, default: str = "") -> str:
+def get_env(name: str, default: str = "", strip: bool = True) -> str:
     """
     Get environment variable with optional default value.
 
@@ -38,6 +38,9 @@ def get_env(name: str, default: str = "") -> str:
     """
 
     env = os.getenv(name)
+    
+    if strip is True:
+        env = env.strip()
 
     if not env:
         if default:
@@ -724,11 +727,12 @@ class Nextcloud:
             username = get_secret("/run/secrets/nextcloud_username")
         
         try:
-            password = get_env("NEXTCLOUD_PASSWORD")
+            password = get_env("NEXTCLOUD_PASSWORD", strip=False)
         except Exception:
             password = get_secret("/run/secrets/nextcloud_password")
 
         upload_dir = get_env("NEXTCLOUD_UPLOAD_DIR", default=DEFAULT_UPLOAD_DIR)
+        upload_dir = upload_dir.strip("/\\")
 
         time_zone = get_env("TZ", default=DEFAULT_TIMEZONE)
 
