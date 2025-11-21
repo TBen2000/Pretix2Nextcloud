@@ -15,6 +15,7 @@ Create a new file called `.env` and store your environment variables there like 
     NEXTCLOUD_URL="https://nextcloud.yourdomain.com"
     NEXTCLOUD_UPLOAD_DIR="/path/in/nextcloud/"
     TIMEZONE="Europe/Berlin"
+    RUN_ONCE="false"
     NEXTCLOUD_USERNAME="nextcloud_user"
     NEXTCLOUD_PASSWORD="MySecurePassword123!"
     PRETIX_API_TOKEN="zkv2p7eja7j8axbe77d3ye85wgyruofcmuphf7gjngbdgepttsejmmpwrgyezdbs"
