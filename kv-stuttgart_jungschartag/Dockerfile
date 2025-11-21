@@ -12,6 +12,8 @@ RUN /app/venv/bin/pip install --upgrade pip
 COPY requirements.txt .
 RUN /app/venv/bin/pip install --no-cache-dir -r requirements.txt
 
+RUN source /app/venv/bin/activate
+
 COPY kv-stuttgart-jungschartag.py .
 
 CMD ["/app/venv/bin/python", "kv-stuttgart-jungschartag.py"]
