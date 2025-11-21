@@ -8,9 +8,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # Docker login using a secure action
+      - name: Docker login
+        uses: docker/login-action@v2
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GH_PAT }}
+        
+      # Set the PATH for local bin and upgrade pip
+      - name: Set PATH and upgrade pip
+        run: |
+          echo "/home/p2n_user/.local/bin:${PATH}" >> $GITHUB_ENV
+          python -m pip install --upgrade pip
+        
+      # Build the Docker image and push it
       - name: Build and push the image
         run: |
-          echo ${{ secrets.GH_PAT }} | docker login --username TBen2000 --password-stdin ghcr.io
           docker build kv-stuttgart_jungschartag --tag ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag:latest
           docker push ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag:latest
-          
