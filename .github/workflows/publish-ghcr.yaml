@@ -16,12 +16,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GH_PAT }}
           registry: ghcr.io
-
-      # Set the PATH for local bin and upgrade pip
-      - name: Set PATH and upgrade pip
-        run: |
-          echo "PATH=/home/p2n_user/.local/bin:$PATH" >> $GITHUB_ENV
-          python -m pip install --upgrade pip
         
       # Build the Docker image and push it
       - name: Build and push the image
