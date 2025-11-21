@@ -31,11 +31,7 @@ If you want to encode your environment variables with base64, you need to use th
 ### Step 3:
 Run desired docker image with following command:
 
-    docker run \
-    --restart unless-stopped \
-    --detach \
-    --env-file .env \
-    ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag:latest
+    docker run --name p2n-kv-stuttgart-jungschartag -d --restart unless-stopped --env-file .env ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag:latest
 
 ### Step 4:
 Delete `.env` file after starting the container to avoid leaking sensitive data.
