@@ -10,6 +10,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build and push the image
         run: |
-          docker login --username TBen2000 --password ${{ secrets.GH_PAT }} ghcr.io
-          docker build kv-stuttgart_jungschartag --tag ghcr.io/TBen2000/pretix2nextcloud-kv-stuttgart-jungschartag:latest
-          docker push ghcr.io/TBen2000/pretix2nextcloud-kv-stuttgart-jungschartag:latest
+          docker login --username tben2000 --password ${{ secrets.GH_PAT }} ghcr.io
+          docker build kv-stuttgart_jungschartag --tag ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag:latest
+          docker push ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag:latest
