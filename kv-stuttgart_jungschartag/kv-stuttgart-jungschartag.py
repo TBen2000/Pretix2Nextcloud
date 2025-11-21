@@ -702,9 +702,12 @@ class Nextcloud:
 
         self.username = username
         self.password = password
+        self.upload_dir = upload_dir
         self.time_zone = time_zone
-
-        self.webdav_url = os.path.join(nextcloud_url, "remote.php/dav/files", self.username, upload_dir)
+        
+        self.base_url = os.path.join(nextcloud_url, "remote.php/dav/files", self.username)
+        
+        self.upload_dir_url = os.path.join(self.base_url, self.upload_dir)
 
     def _get_env_variables(self) -> tuple:
         """
@@ -730,26 +733,58 @@ class Nextcloud:
         time_zone = get_env("TZ", default=DEFAULT_TIMEZONE)
 
         return nextcloud_url, username, password, upload_dir, time_zone
+    
+    def _get_parent_directories(self, path: str) -> list[str]:
+        """
+        Get all parent directories of a given path.
+        e.g. for path "A/B/C" it returns ["A", "A/B", "A/B/C"]
+        """
+        
+        # ensure that the path does not end with a slash
+        path = path.rstrip(os.sep)
+        
+        parent_dirs = []
+        
+        # walk through the path and build the parent directories
+        while path != os.path.dirname(path):
+            parent_dirs.append(path)
+            path = os.path.dirname(path)
+
+        # reverse the list to have the directories in hierarchical order from top to bottom.
+        return parent_dirs[::-1]
 
     def create_upload_directory(self) -> None:
         """
         Create the upload directory on Nextcloud if it does not exist.
         """
-
-        try:
-            r = requests.request(
-                method="MKCOL",
-                url=self.webdav_url,
-                auth=HTTPBasicAuth(self.username, self.password)
-            )
-
-            if r.status_code == 405:
-                logging.info(f"Upload directory already exists ('{self.webdav_url}')")
-            elif r.status_code == 201:
-                logging.info(f"Upload directory created ('{self.webdav_url}')")
-            else:
-                logging.error(f"Error creating upload directory: {r.status_code} - {r.text}")
         
+        # check if directory exists:
+        r = requests.request(
+            method="PROPFIND",
+            url=self.upload_dir_url,
+            auth=HTTPBasicAuth(self.username, self.password)
+        )
+        
+        if r.status_code == 207:
+            logging.info(f"Upload directory already exists ('{self.upload_dir_url}')")
+            return
+        
+        # ceate directory
+        try:
+            for dir in self._get_parent_directories(self.upload_dir):
+                
+                r = requests.request(
+                    method="MKCOL",
+                    url=os.path.join(self.base_url, dir),
+                    auth=HTTPBasicAuth(self.username, self.password)
+                )
+                
+                if r.status_code not in [201, 405]:
+                    logging.error(f"Error creating upload directory: {r.status_code} - {r.text}")
+                    return
+        
+            logging.info(f"Upload directory created ('{self.upload_dir_url}')")
+            
         except Exception as e:
             logging.error(f"Error creating upload directory: {e}")
 
@@ -758,10 +793,9 @@ class Nextcloud:
         Upload a file to Nextcloud via WebDAV.
         """
 
-        webdav_url = os.path.join(self.webdav_url, filename)
         try:
             r = requests.put(
-                url=webdav_url,
+                url=os.path.join(self.upload_dir_url, filename),
                 data=data,
                 auth=HTTPBasicAuth(self.username, self.password)
             )
