@@ -6,6 +6,9 @@ LABEL org.opencontainers.image.source=https://github.com/TBen2000/Pretix2Nextclo
 
 WORKDIR /app
 
+RUN python -m venv .venv
+RUN source .venv/bin/activate
+
 COPY requirements.txt .
 RUN python -m pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
