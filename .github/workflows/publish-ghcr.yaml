@@ -15,7 +15,8 @@ jobs:
         with:
           username: ${{ github.actor }}
           password: ${{ secrets.GH_PAT }}
-        
+          registry: ghcr.io
+
       # Set the PATH for local bin and upgrade pip
       - name: Set PATH and upgrade pip
         run: |
