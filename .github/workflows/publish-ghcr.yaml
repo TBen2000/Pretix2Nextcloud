@@ -20,7 +20,7 @@ jobs:
       # Set the PATH for local bin and upgrade pip
       - name: Set PATH and upgrade pip
         run: |
-          echo "/home/p2n_user/.local/bin:${PATH}" >> $GITHUB_ENV
+          echo "/home/p2n_user/.local/bin:$PATH" >> $GITHUB_ENV
           python -m pip install --upgrade pip
         
       # Build the Docker image and push it
