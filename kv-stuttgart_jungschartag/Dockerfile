@@ -6,12 +6,12 @@ LABEL org.opencontainers.image.source=https://github.com/TBen2000/Pretix2Nextclo
 
 WORKDIR /app
 
-RUN python -m venv .venv
-RUN source .venv/bin/activate
+RUN python -m venv /app/venv
+RUN /app/venv/bin/pip install --upgrade pip
 
 COPY requirements.txt .
-RUN python -m pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+RUN /app/venv/bin/pip install --no-cache-dir -r requirements.txt
 
 COPY kv-stuttgart-jungschartag.py .
-CMD ["python", "kv-stuttgart-jungschartag.py"]
+
+CMD ["/app/venv/bin/python", "kv-stuttgart-jungschartag.py"]
