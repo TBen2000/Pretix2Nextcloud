@@ -829,10 +829,11 @@ class Nextcloud:
 
         filename = "Last_Updated.txt"
 
-        berlin_tz = pytz.timezone("Europe/Berlin")
-        data = datetime.now(tz=berlin_tz).strftime("%d.%m.%Y %H:%M").encode("utf-8")
+        tz = pytz.timezone(self.time_zone)
+        data = "Last updated:\n" + datetime.now(tz=tz).strftime("%d.%m.%Y %H:%M")
+        
 
-        self._upload_file(filename, data)
+        self._upload_file(filename, data.encode("utf-8"))
 
 
 def main():
