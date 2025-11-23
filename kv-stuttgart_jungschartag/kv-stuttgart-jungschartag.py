@@ -39,7 +39,7 @@ def get_env(name: str, default: str = "", strip: bool = True) -> str:
 
     env = os.getenv(name)
     
-    if strip is True:
+    if strip is True and env is not None:
         env = env.strip()
 
     if not env:
