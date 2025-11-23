@@ -39,19 +39,16 @@ def get_env(name: str, default: str = "", strip: bool = True) -> str:
 
     env = os.getenv(name)
     
-    if strip is True and env is not None:
+    if strip is True and isinstance(env, str):
         env = env.strip()
 
     if not env:
         if default:
-            logging.info(
-                f"Environment Variable '{name}' is not set. Using default '{default}'."
-            )
+            logging.info(f"Environment Variable '{name}' is not set. Using default '{default}'.")
             env = default
         else:
-            logging.error(
-                f"Environment Variable '{name}' is not set and has no default."
-            )
+            logging.error(f"Environment Variable '{name}' is not set and has no default.")
+            raise Exception(f"Environment Variable '{name}' is not set and has no default.")
 
     env = _decode_if_base64(env, prefix="BASE64:")
 
@@ -83,7 +80,7 @@ def _decode_if_base64(data: str, prefix: str) -> str:
     Decode the given data from base64 if it starts with the specified prefix.
     """
 
-    if data.startswith(prefix):
+    if isinstance(data, str) and data.startswith(prefix):
         try:
             b64_content = data[len(prefix) :]
             data = base64.b64decode(b64_content).decode("utf-8").strip("\n")
