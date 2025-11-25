@@ -52,9 +52,9 @@ class Environment():
         Return the Pretix API token from environment variable 'PRETIX_API_TOKEN'.
         """
         
-        api_token = self._get_env(name="PRETIX_API_TOKEN", default="[ENV VARIABLE NOT FOUND]")
+        api_token = self._get_env(name="PRETIX_API_TOKEN", raise_error=False)
         
-        if api_token and api_token != "[ENV VARIABLE NOT FOUND]":
+        if api_token:
             return api_token
         
         # get secret instead of env variable:
@@ -135,14 +135,14 @@ class Environment():
         Return the Nextcloud username from environment variable 'NEXTCLOUD_USERNAME'.
         """
         
-        username = self._get_env(name="NEXTCLOUD_USERNAME", default="[ENV VARIABLE NOT FOUND]")
+        username = self._get_env(name="NEXTCLOUD_USERNAME", raise_error=False)
         
-        if username and username != "[ENV VARIABLE NOT FOUND]":
+        if username:
             return username
         
         # get secret instead of env variable:
         
-        secret_name = self._get_env(name="NEXTCLOUD_USERNAME_SECRET_NAME")
+        secret_name = self._get_env(name="NEXTCLOUD_USERNAME_SECRET_NAME", raise_error=False)
         if not secret_name:
             raise ValueError("Environment variable 'NEXTCLOUD_USERNAME' (or alternatively 'NEXTCLOUD_USERNAME_SECRET_NAME' for using docker secrets) is not set.")
         
@@ -157,9 +157,9 @@ class Environment():
         Return the Nextcloud password from environment variable 'NEXTCLOUD_PASSWORD'.
         """
         
-        password = self._get_env(name="NEXTCLOUD_PASSWORD", default="[ENV VARIABLE NOT FOUND]", strip=False)
+        password = self._get_env(name="NEXTCLOUD_PASSWORD", strip=False)
         
-        if password.strip() != "" and password != "[ENV VARIABLE NOT FOUND]":  # if passwort doesn't contain only whitespace
+        if password.strip() != "":  # if passwort doesn't contain only whitespace
             return password
         
         # get secret instead of env variable:
@@ -269,7 +269,7 @@ class Environment():
         raise ValueError(f"Environment variable 'LOGGING_LEVEL' must be either 'debug', 'info', 'warning', or 'error'. Current value: '{logging_level}'.")
     
     
-    def _get_env(self, name: str, default: str = "", strip: bool = True, info_log: bool = False) -> str:
+    def _get_env(self, name: str, default: str = "", strip: bool = True, raise_error: bool = True, info_log: bool = False) -> str:
         """
         Get environment variable with optional default value.
 
@@ -295,7 +295,8 @@ class Environment():
                     logging.debug(logging_text)
                 
             else:
-                raise ValueError(f"Environment Variable '{name}' is not set.")
+                if raise_error is True:
+                    raise ValueError(f"Environment Variable '{name}' is not set.")
 
         env = self._decode_if_base64(env, prefix="BASE64:")
 
