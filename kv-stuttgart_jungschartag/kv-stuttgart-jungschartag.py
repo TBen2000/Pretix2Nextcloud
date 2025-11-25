@@ -52,14 +52,14 @@ class Environment():
         Return the Pretix API token from environment variable 'PRETIX_API_TOKEN'.
         """
         
-        api_token = self._get_env(name="PRETIX_API_TOKEN", default="")
+        api_token = self._get_env(name="PRETIX_API_TOKEN", default="[ENV VARIABLE NOT FOUND]")
         
-        if api_token:
+        if api_token and api_token != "[ENV VARIABLE NOT FOUND]":
             return api_token
         
         # get secret instead of env variable:
         
-        secret_name = self._get_env(name="PRETIX_API_TOKEN_SECRET_NAME", default="")
+        secret_name = self._get_env(name="PRETIX_API_TOKEN_SECRET_NAME")
         if not secret_name:
             raise ValueError("Environment variable 'PRETIX_API_TOKEN' (or alternatively 'PRETIX_API_TOKEN_SECRET_NAME' for using docker secrets) is not set.")
         
@@ -135,14 +135,14 @@ class Environment():
         Return the Nextcloud username from environment variable 'NEXTCLOUD_USERNAME'.
         """
         
-        username = self._get_env(name="NEXTCLOUD_USERNAME", default="")
+        username = self._get_env(name="NEXTCLOUD_USERNAME", default="[ENV VARIABLE NOT FOUND]")
         
-        if username:
+        if username and username != "[ENV VARIABLE NOT FOUND]":
             return username
         
         # get secret instead of env variable:
         
-        secret_name = self._get_env(name="NEXTCLOUD_USERNAME_SECRET_NAME", default="")
+        secret_name = self._get_env(name="NEXTCLOUD_USERNAME_SECRET_NAME")
         if not secret_name:
             raise ValueError("Environment variable 'NEXTCLOUD_USERNAME' (or alternatively 'NEXTCLOUD_USERNAME_SECRET_NAME' for using docker secrets) is not set.")
         
@@ -157,14 +157,14 @@ class Environment():
         Return the Nextcloud password from environment variable 'NEXTCLOUD_PASSWORD'.
         """
         
-        password = self._get_env(name="NEXTCLOUD_PASSWORD",default="", strip=False)
+        password = self._get_env(name="NEXTCLOUD_PASSWORD", default="[ENV VARIABLE NOT FOUND]", strip=False)
         
-        if password.strip() != "":  # if passwort doesn't contain only whitespace
+        if password.strip() != "" and password != "[ENV VARIABLE NOT FOUND]":  # if passwort doesn't contain only whitespace
             return password
         
         # get secret instead of env variable:
         
-        secret_name = self._get_env(name="NEXTCLOUD_PASSWORD_SECRET_NAME", default="")
+        secret_name = self._get_env(name="NEXTCLOUD_PASSWORD_SECRET_NAME")
         if not secret_name:
             raise ValueError("Environment variable 'NEXTCLOUD_PASSWORD' (or alternatively 'NEXTCLOUD_PASSWORD_SECRET_NAME' for using docker secrets) is not set.")
         
