@@ -52,7 +52,7 @@ class Environment():
         Return the Pretix API token from environment variable 'PRETIX_API_TOKEN'.
         """
         
-        api_token = self._get_env(name="PRETIX_API_TOKEN")
+        api_token = self._get_env(name="PRETIX_API_TOKEN", default="")
         
         if api_token:
             return api_token
@@ -135,7 +135,7 @@ class Environment():
         Return the Nextcloud username from environment variable 'NEXTCLOUD_USERNAME'.
         """
         
-        username = self._get_env(name="NEXTCLOUD_USERNAME")
+        username = self._get_env(name="NEXTCLOUD_USERNAME", default="")
         
         if username:
             return username
@@ -157,7 +157,7 @@ class Environment():
         Return the Nextcloud password from environment variable 'NEXTCLOUD_PASSWORD'.
         """
         
-        password = self._get_env(name="NEXTCLOUD_PASSWORD", strip=False)
+        password = self._get_env(name="NEXTCLOUD_PASSWORD",default="", strip=False)
         
         if password.strip() != "":  # if passwort doesn't contain only whitespace
             return password
