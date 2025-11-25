@@ -12,15 +12,11 @@ Install Docker from https://docs.docker.com/get-docker/
 Create a new file called `.env` and store your environment variables there like this:
 
     PRETIX_EVENT_SLUG=your_event_slug
-    PRETIX_ORGANIZER_SLUG=your_organizer_slug
-    PRETIX_URL=https://pretix.yourdomain.com
-    NEXTCLOUD_URL=https://nextcloud.yourdomain.com
+    PRETIX_API_TOKEN=zkv2p7eja7j8axbe77d3ye85wgyruofcmuphf7gjngbdgepttsejmmpwrgyezdbs
     NEXTCLOUD_UPLOAD_DIR=/path/in/nextcloud/
-    TIMEZONE=Europe/Berlin
-    RUN_ONCE=false
     NEXTCLOUD_USERNAME=nextcloud_user
     NEXTCLOUD_PASSWORD=MySecurePassword123!
-    PRETIX_API_TOKEN=zkv2p7eja7j8axbe77d3ye85wgyruofcmuphf7gjngbdgepttsejmmpwrgyezdbs
+    
 
 > [!NOTE]  
 > NEXTCLOUD_PASSWORD takes leading and trailing whitespaces into account. Make sure there are none if your password doesn't contain them.
@@ -36,6 +32,22 @@ If you want to encode your environment variables with base64, you need to use th
 
 <br>
 
+You can also add following optional environment variables if you need to customize the behavior apart from the defaults (normally not necessary):
+
+- `PRETIX_ORGANIZER_SLUG` (default: `kv-stuttgart`)
+- `PRETIX_URL` (default: `https://tickets.swdec.de`)
+- `NEXTCLOUD_URL` (default: `https://jcloud.swdec.de`)
+- `TZ` (default: `Europe/Berlin`)
+- `RUN_ONCE` (default: `false`)
+- `INTERVAL_MINUTES` (default: `15`)
+- `CHECK_INTERVAL_SECONDS` (default: `60`)
+- `LOGGING_LEVEL` (default: `INFO`)
+
+`INTERVAL_MINUTES` defines how long the tool waits between two runs. `CHECK_INTERVAL_SECONDS` defines how often the tool checks if it's time to run again. Both are only relevant if `RUN_ONCE` is set to `false`.
+
+LOGGING_LEVEL can be set to one of the following values: `DEBUG`, `INFO`, `WARNING`, `ERROR`.
+<br>
+
 ### Step 3:
 Run desired docker image with following command:
 
@@ -49,10 +61,10 @@ Delete `.env` file after starting the container to avoid leaking sensitive data.
 <br>
 
 ### Alternative for advandced users:
-If you're running Docker Swarm and want to use docker secrets instead of environment variables for sensitive data like API tokens and passwords, use following names for the secrets:
+If you're running Docker Swarm and want to use Docker secrets instead of environment variables for sensitive data like API tokens and passwords, set your secrets and hand over the names for the secrets in following environment variables:
 
-- `nextcloud_username` instead of environment variable `NEXTCLOUD_USERNAME`
-- `nextcloud_password` instead of environment variable `NEXTCLOUD_PASSWORD`
-- `pretix_api_token` instead of environment variable `PRETIX_API_TOKEN`
+- `NEXTCLOUD_USERNAME_SECRET_NAME` instead of `NEXTCLOUD_USERNAME`
+- `NEXTCLOUD_PASSWORD_SECRET_NAME` instead of `NEXTCLOUD_PASSWORD`
+- `PRETIX_API_TOKEN_SECRET_NAME` instead of `PRETIX_API_TOKEN`
 
 The same base64 possibility applies to the content of the secret files.

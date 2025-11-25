@@ -13,81 +13,331 @@ from openpyxl import load_workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
 import base64
 
-LOGGING_LEVEL = logging.INFO
-SCHEDULE_INTERVAL_MINUTES = 15
-SCHEDULE_CHECK_INTERVAL_SECONDS = 60
-EXCEL_COLUMN_WIDTH_MAX = 30
-TEMP_DIR_NAME = "jungschartag_automation"
+
 DEFAULT_PRETIX_URL = "https://tickets.swdec.de"
+DEFAULT_PRETIX_ORGANIZER_SLUG = "kv-stuttgart"
+DEFAULT_EXCEL_MAX_COLUMN_WIDTH = 30
+DEFAULT_TEMP_DIR_NAME = "jungschartag_automation"
 DEFAULT_NEXTCLOUD_URL = "https://jcloud.swdec.de"
-DEFAULT_UPLOAD_DIR = "Jungschartag_Anmeldungen"
+DEFAULT_NEXTCLOUD_UPLOAD_DIR = "Jungschartag_Anmeldungen"
 DEFAULT_TIMEZONE = "Europe/Berlin"
+DEFAULT_INTERVAL_MINUTES = 15
+DEFAULT_CHECK_INTERVAL_SECONDS = 60
+DEFAULT_RUN_ONCE = False
+DEFAULT_LOGGING_LEVEL = "INFO"
 
-logging.basicConfig(level=LOGGING_LEVEL)
+logging.basicConfig(level=logging.INFO)
 
-success_on_last_run = False  # Track if the last run was successful
+success_on_last_run = False  # track if the last run was successful
 
 
-def get_env(name: str, default: str = "", strip: bool = True) -> str:
-    """
-    Get environment variable with optional default value.
-
-    Logs a warning when default is used and an error when a required
-    environment variable is missing.
-    """
-
-    env = os.getenv(name)
+class Environment():
     
-    if strip is True and isinstance(env, str):
-        env = env.strip()
+    def get_pretix_url(self) -> str:
+        """
+        Return the Pretix base URL from environment variable 'PRETIX_URL'.
+        """
+        
+        pretix_url = self._get_env(name="PRETIX_URL", default=str(DEFAULT_PRETIX_URL))
 
-    if not env:
-        if default:
-            logging.info(f"Environment Variable '{name}' is not set. Using default '{default}'.")
-            env = default
-        else:
-            logging.error(f"Environment Variable '{name}' is not set and has no default.")
-            raise Exception(f"Environment Variable '{name}' is not set and has no default.")
+        if pretix_url.startswith("http://"):
+            logging.warning("Environment variable 'PRETIX_URL' starts with 'http://'. It is strongly recommended to use https because sensitive data is transmitted over the internet.")
+        elif not pretix_url.startswith("https://"):  # if pretix_url doesn't start with "http://" or "https://"
+            pretix_url = f"https://{pretix_url}"
+            
+        return pretix_url
+    
+    def get_pretix_api_token(self) -> str:
+        """
+        Return the Pretix API token from environment variable 'PRETIX_API_TOKEN'.
+        """
+        
+        api_token = self._get_env(name="PRETIX_API_TOKEN")
+        
+        if api_token:
+            return api_token
+        
+        # get secret instead of env variable:
+        
+        secret_name = self._get_env(name="PRETIX_API_TOKEN_SECRET_NAME", default="")
+        if not secret_name:
+            raise ValueError("Environment variable 'PRETIX_API_TOKEN' (or alternatively 'PRETIX_API_TOKEN_SECRET_NAME' for using docker secrets) is not set.")
+        
+        secret = self._get_secret(secret_name)  
+        if not secret:
+            raise ValueError(f"Secret {secret_name} for the Pretix API token is empty.")
+        
+        return secret
+    
+    def get_pretix_event_slug(self) -> str:
+        """
+        Return the Pretix event slug from environment variable 'PRETIX_EVENT_SLUG'.
+        """
+        
+        event_slug = self._get_env(name="PRETIX_EVENT_SLUG")
+            
+        return event_slug
+    
+    def get_pretix_orgnizer_slug(self) -> str:
+        """
+        Return the Pretix organizer slug from environment variable 'PRETIX_ORGANIZER_SLUG'.
+        """
+        
+        orgnizer_slug = self._get_env(name="PRETIX_ORGANIZER_SLUG", default=str(DEFAULT_PRETIX_ORGANIZER_SLUG))
+            
+        return orgnizer_slug
+    
+    def get_excel_max_column_width(self) -> int:
+        """
+        Return the max column width for excel files from environment variable 'EXCEL_MAX_COLUMN_WIDTH'.
+        """
+        
+        str_width = self._get_env(name="EXCEL_MAX_COLUMN_WIDTH", default=str(DEFAULT_EXCEL_MAX_COLUMN_WIDTH))
 
-    env = _decode_if_base64(env, prefix="BASE64:")
-
-    return env
-
-
-def get_secret(filepath: str) -> str:
-    """
-    Read a docker-style secret from a file and return its contents. Handles base64-encoded secrets if prefixed with "BASE64:".
-
-    Returns an empty string and logs an error on failures.
-    """
-
-    try:
-        with open(filepath, "r") as f:
-            secret = f.read().strip("\n")
-
-    except Exception as e:
-        logging.error(f"Error reading secret from {filepath}: {e}")
-        secret = ""
-
-    secret = _decode_if_base64(secret, prefix="BASE64:")
-
-    return secret
-
-
-def _decode_if_base64(data: str, prefix: str) -> str:
-    """
-    Decode the given data from base64 if it starts with the specified prefix.
-    """
-
-    if isinstance(data, str) and data.startswith(prefix):
         try:
-            b64_content = data[len(prefix) :]
-            data = base64.b64decode(b64_content).decode("utf-8").strip("\n")
-        except Exception as e:
-            logging.error(f"Error decoding base64: {e}")
-            data = ""
+            width = int(str_width)
+        except ValueError:
+            logging.error(f"Environment variable 'EXCEL_MAX_COLUMN_WIDTH' must be an integer. Using default value '{DEFAULT_EXCEL_MAX_COLUMN_WIDTH}'.")
+            return DEFAULT_EXCEL_MAX_COLUMN_WIDTH
 
-    return data
+        min_value = 5
+        if width < min_value:
+            logging.error(f"Environment variable 'EXCEL_MAX_COLUMN_WIDTH' must be at least {min_value}. Using default value '{DEFAULT_EXCEL_MAX_COLUMN_WIDTH}'.")
+            return DEFAULT_EXCEL_MAX_COLUMN_WIDTH
+
+        return width
+    
+    def get_temp_dir_name(self) -> str:
+        """
+        Return the name of the used subdirectory in the tmp folder from environment variable 'TEMP_DIR_NAME'.
+        """
+        
+        temp_dir_name = self._get_env(name="TEMP_DIR_NAME", default=str(DEFAULT_TEMP_DIR_NAME))
+
+        return temp_dir_name
+    
+    def get_nextcloud_url(self) -> str:
+        """
+        Return the Nextcloud URL from environment variable 'NEXTCLOUD_URL'.
+        """
+        
+        pretix_url = self._get_env(name="NEXTCLOUD_URL", default=str(DEFAULT_NEXTCLOUD_URL))
+
+        if pretix_url.startswith("http://"):
+            logging.warning("Environment variable 'NEXTCLOUD_URL' starts with 'http://'. It is strongly recommended to use https because sensitive data is transmitted over the internet.")
+        elif not pretix_url.startswith("https://"):  # if pretix_url doesn't start with "http://" or "https://"
+            pretix_url = f"https://{pretix_url}"
+            
+        return pretix_url
+    
+    def get_nextcloud_username(self) -> str:
+        """
+        Return the Nextcloud username from environment variable 'NEXTCLOUD_USERNAME'.
+        """
+        
+        username = self._get_env(name="NEXTCLOUD_USERNAME")
+        
+        if username:
+            return username
+        
+        # get secret instead of env variable:
+        
+        secret_name = self._get_env(name="NEXTCLOUD_USERNAME_SECRET_NAME", default="")
+        if not secret_name:
+            raise ValueError("Environment variable 'NEXTCLOUD_USERNAME' (or alternatively 'NEXTCLOUD_USERNAME_SECRET_NAME' for using docker secrets) is not set.")
+        
+        secret = self._get_secret(secret_name)  
+        if not secret:
+            raise ValueError(f"Secret {secret_name} for the Nextcloud username is empty.")
+        
+        return secret
+    
+    def get_nextcloud_password(self) -> str:
+        """
+        Return the Nextcloud password from environment variable 'NEXTCLOUD_PASSWORD'.
+        """
+        
+        password = self._get_env(name="NEXTCLOUD_PASSWORD", strip=False)
+        
+        if password.strip() != "":  # if passwort doesn't contain only whitespace
+            return password
+        
+        # get secret instead of env variable:
+        
+        secret_name = self._get_env(name="NEXTCLOUD_PASSWORD_SECRET_NAME", default="")
+        if not secret_name:
+            raise ValueError("Environment variable 'NEXTCLOUD_PASSWORD' (or alternatively 'NEXTCLOUD_PASSWORD_SECRET_NAME' for using docker secrets) is not set.")
+        
+        secret = self._get_secret(secret_name)  
+        if not secret:
+            raise ValueError(f"Secret {secret_name} for the Nextcloud password is empty.")
+        
+        return secret
+    
+    def get_nextcloud_upload_dir(self) -> str:
+        """
+        Return the Nextcloud upload directory from environment variable 'NEXTCLOUD_UPLOAD_DIR'.
+        """
+        
+        upload_dir = self._get_env(name="NEXTCLOUD_UPLOAD_DIR", default=str(DEFAULT_NEXTCLOUD_UPLOAD_DIR), info_log=True)
+        
+        upload_dir = upload_dir.strip("/\\")
+            
+        return upload_dir
+    
+    def get_timezone(self) -> str:
+        """
+        Return the timezone from environment variable 'TZ'.
+        """
+        
+        timezone = self._get_env(name="TZ", default=str(DEFAULT_TIMEZONE))
+            
+        return timezone
+    
+    def get_interval_minutes(self) -> int:
+        """
+        Return the interval in minutes to run the main function in loop from environment variable 'INTERVAL_MINUTES'.
+        """
+        
+        str_minutes = self._get_env(name="INTERVAL_MINUTES", default=str(DEFAULT_INTERVAL_MINUTES))
+
+        try:
+            minutes = int(str_minutes)
+        except ValueError:
+            logging.error(f"Environment variable 'INTERVAL_MINUTES' must be an integer. Using default value '{DEFAULT_INTERVAL_MINUTES}'.")
+            return DEFAULT_INTERVAL_MINUTES
+
+        min_value = 1
+        if minutes < min_value:
+            logging.error(f"Environment variable 'INTERVAL_MINUTES' must be at least {min_value}. Using default value '{DEFAULT_INTERVAL_MINUTES}'.")
+            return DEFAULT_INTERVAL_MINUTES
+
+        return minutes
+    
+    def get_check_interval_seconds(self) -> int:
+        """
+        Return the interval in second to check if the time to wait for running again is over. From environment variable 'CHECK_INTERVAL_SECONDS'.
+        """
+        
+        str_seconds = self._get_env(name="CHECK_INTERVAL_SECONDS", default=str(DEFAULT_CHECK_INTERVAL_SECONDS))
+
+        try:
+            seconds = int(str_seconds)
+        except ValueError:
+            logging.error(f"Environment variable 'CHECK_INTERVAL_SECONDS' must be an integer. Using default value '{DEFAULT_CHECK_INTERVAL_SECONDS}'.")
+            return DEFAULT_CHECK_INTERVAL_SECONDS
+
+        min_value = 1
+        if seconds < min_value:
+            logging.error(f"Environment variable 'CHECK_INTERVAL_SECONDS' must be at least {min_value}. Using default value '{DEFAULT_CHECK_INTERVAL_SECONDS}'.")
+            return DEFAULT_CHECK_INTERVAL_SECONDS
+
+        return seconds
+   
+    def get_run_once(self) -> bool:
+        """
+        Return wheather to run once from environment variable 'RUN_ONCE'.
+        """
+        
+        run_once = self._get_env(name="RUN_ONCE", default=str(DEFAULT_RUN_ONCE))
+        run_once_lower = run_once.lower()
+        
+        if run_once_lower == "true":
+            return True
+        if run_once_lower == "false":
+            return False
+        
+        raise ValueError(f"Environment variable 'RUN_ONCE' must be either 'true' or 'false'. Current value: '{run_once}'")
+
+    def get_logging_level(self) -> int:
+        """
+        Return logging level from environment variable 'LOGGING_LEVEL'.
+        """
+        logging_level = self._get_env(name="LOGGING_LEVEL", default=str(DEFAULT_LOGGING_LEVEL))
+        logging_level = logging_level.lower()
+
+        levels = {
+            "debug": logging.DEBUG,
+            "info": logging.INFO,
+            "warning": logging.WARNING,
+            "error": logging.ERROR,
+        }
+
+        if logging_level in levels:
+            return levels[logging_level]
+
+        raise ValueError(f"Environment variable 'LOGGING_LEVEL' must be either 'debug', 'info', 'warning', or 'error'. Current value: '{logging_level}'.")
+    
+    
+    def _get_env(self, name: str, default: str = "", strip: bool = True, info_log: bool = False) -> str:
+        """
+        Get environment variable with optional default value.
+
+        Logs a warning when default is used and an error when a required
+        environment variable is missing.
+        """
+
+        env = os.getenv(name, "")
+        
+        if strip is True:
+            env = env.strip()
+
+        if not env:
+            
+            default = default.strip()
+            if default:
+                env = default
+                
+                logging_text = f"Environment Variable '{name}' is not set. Using default '{default}'."
+                if info_log is True:
+                    logging.info(logging_text)
+                else:
+                    logging.debug(logging_text)
+                
+            else:
+                raise ValueError(f"Environment Variable '{name}' is not set.")
+
+        env = self._decode_if_base64(env, prefix="BASE64:")
+
+        return env
+
+
+    def _get_secret(self, name: str) -> str:
+        """
+        Read a docker-style secret from a file and return its contents. Handles base64-encoded secrets if prefixed with "BASE64:".
+
+        Returns an empty string and logs an error on failures.
+        """
+        
+        path = os.path.join("/run/secrets", name)
+
+        try:
+            with open(path, "r") as f:
+                secret = f.read().strip("\n")
+
+        except Exception as e:
+            logging.error(f"Error reading secret from {path}: {e}")
+            secret = ""
+
+        secret = self._decode_if_base64(secret, prefix="BASE64:")
+
+        return secret
+
+
+    def _decode_if_base64(self, data: str, prefix: str) -> str:
+        """
+        Decode the given data from base64 if it starts with the specified prefix.
+        """
+
+        if isinstance(data, str) and data.startswith(prefix):
+            try:
+                b64_content = data[len(prefix) :]
+                data = base64.b64decode(b64_content).decode("utf-8").strip("\n")
+            except Exception as e:
+                logging.error(f"Error decoding base64: {e}")
+                data = ""
+
+        return data
 
 
 class Dataframe:
@@ -97,14 +347,16 @@ class Dataframe:
         """
         Initialize, fetch data from Pretix API and load into different desired dataframes.
         """
+        env = Environment()
 
-        pretix_event, pretix_organizer, pretix_url, pretix_api_token, time_zone = self._get_env_variables()
+        pretix_url = env.get_pretix_url()
+        pretix_organizer = env.get_pretix_orgnizer_slug()
+        pretix_event = env.get_pretix_event_slug()
+        pretix_api_token = env.get_pretix_api_token()
 
-        self.time_zone = time_zone
+        self.time_zone = env.get_timezone()
 
-        self.pretix_api_url = os.path.join(
-            pretix_url, "api/v1/organizers", pretix_organizer, "events", pretix_event
-        )
+        self.pretix_api_url = os.path.join(pretix_url, "api/v1/organizers", pretix_organizer, "events", pretix_event)
         self.headers = {"Authorization": f"Token {pretix_api_token}"}
         self.raw_df = self._get_raw_df()
 
@@ -118,27 +370,6 @@ class Dataframe:
         self.town_dfs = self._get_town_dfs()
         self.numbers_overview = self._get_numbers_df()
 
-    def _get_env_variables(self):
-        """
-        Get and validate required environment variables.
-        """
-
-        pretix_event = get_env("PRETIX_EVENT_SLUG")
-
-        pretix_organizer = get_env("PRETIX_ORGANIZER_SLUG", default="kv-stuttgart")
-        pretix_url = get_env("PRETIX_URL", default=DEFAULT_PRETIX_URL)
-        if not (pretix_url.startswith("http://") or pretix_url.startswith("https://")):
-            pretix_url = f"https://{pretix_url}"
-
-        try:
-            pretix_api_token = get_env("PRETIX_API_TOKEN")
-        except Exception:
-            # get from docker secret file
-            pretix_api_token = get_secret("/run/secrets/pretix_api_token")
-
-        time_zone = get_env("TZ", default=DEFAULT_TIMEZONE)
-
-        return pretix_event, pretix_organizer, pretix_url, pretix_api_token, time_zone
 
     def _get_questions(self) -> dict:
         """
@@ -568,8 +799,11 @@ class Excel:
         """
         Initialize the Excel helper class, setting up a temporary directory for Excel files.
         """
-
-        self.temp_dir = os.path.join(tempfile.gettempdir(), TEMP_DIR_NAME)
+        env = Environment()
+        self.max_column_width = env.get_excel_max_column_width()
+        temp_dir_name = env.get_temp_dir_name()
+        
+        self.temp_dir = os.path.join(tempfile.gettempdir(), temp_dir_name)
         Path(self.temp_dir).mkdir(parents=True, exist_ok=True)
         
     def _sanitize_filename(self, filename: str) -> str:
@@ -618,7 +852,7 @@ class Excel:
                     len(str(col)),  # header length
                     df[col].astype(str).map(len).max()  # data length
                 )
-                length = min(max_length + 2, EXCEL_COLUMN_WIDTH_MAX)  # cap the width via constant
+                length = min(max_length + 2, self.max_column_width)  # cap the width via constant
                 
                 worksheet.column_dimensions[worksheet.cell(row=1, column=idx).column_letter].width = length
 
@@ -667,7 +901,7 @@ class Excel:
             showFirstColumn=False,
             showLastColumn=False,
             showRowStripes=True,
-            showColumnStripes=False
+            showColumnStripes=False,
         )
         tab.tableStyleInfo = style
 
@@ -697,42 +931,18 @@ class Nextcloud:
         """
         Initialize Nextcloud connection with environment variables.
         """
-        nextcloud_url, username, password, upload_dir, time_zone = self._get_env_variables()
-
-        self.username = username
-        self.password = password
-        self.upload_dir = upload_dir
-        self.time_zone = time_zone
+        env = Environment()
+        
+        nextcloud_url = env.get_nextcloud_url()
+        self.username = env.get_nextcloud_username()
+        self.password = env.get_nextcloud_password()
+        self.upload_dir = env.get_nextcloud_upload_dir()
+        self.time_zone = env.get_timezone()
         
         self.base_url = os.path.join(nextcloud_url, "remote.php/dav/files", self.username)
         
         self.upload_dir_url = os.path.join(self.base_url, self.upload_dir)
 
-    def _get_env_variables(self) -> tuple:
-        """
-        Get and validate required environment variables.
-        """
-
-        nextcloud_url = get_env("NEXTCLOUD_URL", default=DEFAULT_NEXTCLOUD_URL)
-        if not nextcloud_url.startswith("http://") and not nextcloud_url.startswith("https://"):
-            nextcloud_url = f"https://{nextcloud_url}"
-
-        try:
-            username = get_env("NEXTCLOUD_USERNAME")
-        except Exception:
-            username = get_secret("/run/secrets/nextcloud_username")
-        
-        try:
-            password = get_env("NEXTCLOUD_PASSWORD", strip=False)
-        except Exception:
-            password = get_secret("/run/secrets/nextcloud_password")
-
-        upload_dir = get_env("NEXTCLOUD_UPLOAD_DIR", default=DEFAULT_UPLOAD_DIR)
-        upload_dir = upload_dir.strip("/\\")
-
-        time_zone = get_env("TZ", default=DEFAULT_TIMEZONE)
-
-        return nextcloud_url, username, password, upload_dir, time_zone
     
     def _get_parent_directories(self, path: str) -> list[str]:
         """
@@ -892,17 +1102,25 @@ def main():
 
 
 if __name__ == "__main__":
-    # Run main immediately on startup
+    env = Environment()
+    level = env.get_logging_level()
+    
+    # remove all handlers associated with the root logger object and set desired logging level
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
+    logging.basicConfig(level=level)
+    
+    # run main immediately on startup
     main()
 
-    if get_env("RUN_ONCE", default="false").lower().strip() == "true":
+    if env.get_run_once() is True:
         logging.info("RUN_ONCE is set to true. Exiting now after single run.")
         exit(0)
 
-    # Schedule main to run at configured intervals
-    schedule.every(SCHEDULE_INTERVAL_MINUTES).minutes.do(main)
+    # schedule main to run at configured intervals
+    schedule.every(env.get_interval_minutes()).minutes.do(main)
 
-    # Keep the scheduler running
+    # keep the scheduler running
     while True:
         schedule.run_pending()
-        time.sleep(SCHEDULE_CHECK_INTERVAL_SECONDS)  # Check periodically if a task needs to run
+        time.sleep(env.get_check_interval_seconds())  # check periodically if a task needs to run
