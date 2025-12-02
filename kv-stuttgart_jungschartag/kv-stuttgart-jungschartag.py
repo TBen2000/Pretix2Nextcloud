@@ -337,13 +337,16 @@ class Environment():
         Decode the given data from base64 if it starts with the specified prefix.
         """
 
-        if isinstance(data, str) and data.startswith(prefix):
-            try:
-                b64_content = data[len(prefix) :]
-                data = base64.b64decode(b64_content).decode("utf-8").strip("\n")
-            except Exception as e:
-                logging.error(f"Error decoding base64: {e}")
-                data = ""
+        if isinstance(data, str):
+            stripped_data = data.strip()
+            
+            if stripped_data.startswith(prefix):
+                try:
+                    b64_content = stripped_data[len(prefix) :]
+                    data = base64.b64decode(b64_content).decode("utf-8").strip("\n")
+                except Exception as e:
+                    logging.error(f"Error decoding base64: {e}")
+                    data = ""
 
         return data
 
