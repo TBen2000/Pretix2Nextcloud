@@ -1,3 +1,6 @@
+# Customized Pretix2Nextcloud instance for kv-stuttgart-jungschartag
+# Needs P2N.py to function
+
 import pandas as pd
 import logging
 import sys
