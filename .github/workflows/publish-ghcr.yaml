@@ -16,9 +16,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GH_PAT }}
           registry: ghcr.io
-        
+
       # Build the Docker image and push it
       - name: Build and push the image
         run: |
-          docker build kv-stuttgart_jungschartag --tag ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag:latest
+          docker build . \
+            -f kv-stuttgart_jungschartag/Dockerfile \
+            --tag ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag:latest
+
           docker push ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag:latest
