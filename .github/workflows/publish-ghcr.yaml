@@ -58,3 +58,132 @@ jobs:
         run: |
           IMAGE=ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag
           docker push $IMAGE:latest
+
+
+
+      ##################################################################
+      # IMAGE 2 — pretix2nextcloud-kv-stuttgart-teencamp
+      ##################################################################
+
+      - name: Build base image -> kv-stuttgart-teencamp
+        run: |
+          IMAGE=ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-teencamp
+          DOCKERFILE=kv-stuttgart_teencamp/Dockerfile
+
+          docker build . \
+            -f $DOCKERFILE \
+            --tag $IMAGE:base
+
+      - name: Push base image -> kv-stuttgart-teencamp
+        id: push_base_kv-stuttgart-teencamp
+        run: |
+          IMAGE=ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-teencamp
+
+          docker push $IMAGE:base | tee output.txt
+          DIGEST=$(grep -o 'sha256:[a-f0-9]\+' output.txt | head -n 1)
+
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+
+      # Build the final image with digest injected as env
+      - name: Build final image with digest -> kv-stuttgart-teencamp
+        run: |
+          IMAGE=ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-teencamp
+          DIGEST="${{ steps.push_base_kv-stuttgart-teencamp.outputs.digest }}"
+
+          echo "FROM $IMAGE:base" > Dockerfile.inject
+          echo "ENV DOCKER_IMAGE=$DIGEST" >> Dockerfile.inject
+
+          docker build . \
+            -f Dockerfile.inject \
+            --tag $IMAGE:latest
+
+      - name: Push final image -> kv-stuttgart-teencamp
+        run: |
+          IMAGE=ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-teencamp
+          docker push $IMAGE:latest
+
+
+
+      ##################################################################
+      # IMAGE 3 — pretix2nextcloud-kv-stuttgart-zeltlager-jungs
+      ##################################################################
+
+      - name: Build base image -> kv-stuttgart-zeltlager-jungs
+        run: |
+          IMAGE=ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-zeltlager-jungs
+          DOCKERFILE=kv-stuttgart_zeltlager-jungs/Dockerfile
+
+          docker build . \
+            -f $DOCKERFILE \
+            --tag $IMAGE:base
+
+      - name: Push base image -> kv-stuttgart-zeltlager-jungs
+        id: push_base_kv-stuttgart-zeltlager-jungs
+        run: |
+          IMAGE=ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-zeltlager-jungs
+
+          docker push $IMAGE:base | tee output.txt
+          DIGEST=$(grep -o 'sha256:[a-f0-9]\+' output.txt | head -n 1)
+
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+
+      # Build the final image with digest injected as env
+      - name: Build final image with digest -> kv-stuttgart-zeltlager-jungs
+        run: |
+          IMAGE=ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-zeltlager-jungs
+          DIGEST="${{ steps.push_base_kv-stuttgart-zeltlager-jungs.outputs.digest }}"
+
+          echo "FROM $IMAGE:base" > Dockerfile.inject
+          echo "ENV DOCKER_IMAGE=$DIGEST" >> Dockerfile.inject
+
+          docker build . \
+            -f Dockerfile.inject \
+            --tag $IMAGE:latest
+
+      - name: Push final image -> kv-stuttgart-zeltlager-jungs
+        run: |
+          IMAGE=ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-zeltlager-jungs
+          docker push $IMAGE:latest
+
+
+
+      ##################################################################
+      # IMAGE 4 — pretix2nextcloud-kv-stuttgart-zeltlager-maedels
+      ##################################################################
+
+      - name: Build base image -> kv-stuttgart-zeltlager-maedels
+        run: |
+          IMAGE=ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-zeltlager-maedels
+          DOCKERFILE=kv-stuttgart_zeltlager-maedels/Dockerfile
+
+          docker build . \
+            -f $DOCKERFILE \
+            --tag $IMAGE:base
+
+      - name: Push base image -> kv-stuttgart-zeltlager-maedels
+        id: push_base_kv-stuttgart-zeltlager-maedels
+        run: |
+          IMAGE=ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-zeltlager-maedels
+
+          docker push $IMAGE:base | tee output.txt
+          DIGEST=$(grep -o 'sha256:[a-f0-9]\+' output.txt | head -n 1)
+
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+
+      # Build the final image with digest injected as env
+      - name: Build final image with digest -> kv-stuttgart-zeltlager-maedels
+        run: |
+          IMAGE=ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-zeltlager-maedels
+          DIGEST="${{ steps.push_base_kv-stuttgart-zeltlager-maedels.outputs.digest }}"
+
+          echo "FROM $IMAGE:base" > Dockerfile.inject
+          echo "ENV DOCKER_IMAGE=$DIGEST" >> Dockerfile.inject
+
+          docker build . \
+            -f Dockerfile.inject \
+            --tag $IMAGE:latest
+
+      - name: Push final image -> kv-stuttgart-zeltlager-maedels
+        run: |
+          IMAGE=ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-zeltlager-maedels
+          docker push $IMAGE:latest

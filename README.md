@@ -51,9 +51,23 @@ LOGGING_LEVEL can be set to one of the following values: `DEBUG`, `INFO`, `WARNI
 <br>
 
 ### Step 3:
-Run desired docker image with following command:
+Run the desired Docker image with one of the following commands:
+
+#### For KV Stuttgart Jungschartag:
 
     docker run --name p2n-kv-stuttgart-jungschartag -d --restart unless-stopped --env-file .env ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag:latest
+
+#### For KV Stuttgart Teencamp:
+
+    docker run --name p2n-kv-stuttgart-teencamp -d --restart unless-stopped --env-file .env ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-teencamp:latest
+
+#### For KV Stuttgart Zeltlager Jungs:
+
+    docker run --name p2n-kv-stuttgart-zeltlager-jungs -d --restart unless-stopped --env-file .env ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-zeltlager-jungs:latest
+
+#### For KV Stuttgart Zeltlager Mädels:
+
+    docker run --name p2n-kv-stuttgart-zeltlager-maedels -d --restart unless-stopped --env-file .env ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-zeltlager-maedels:latest
 
 <br>
 
