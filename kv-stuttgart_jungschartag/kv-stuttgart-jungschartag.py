@@ -221,7 +221,6 @@ class CustomMain(Main):
         # generate, upload and delete town-wise attendees files
         for town in dataframe.town_dfs:
             df = dataframe.town_dfs[town]
-
             self.upload(excel, nc, df, town)
 
         # generate, upload and delete all numbers_overview file
