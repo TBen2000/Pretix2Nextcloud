@@ -430,17 +430,15 @@ class Environment:
             f"Environment variable 'LOGGING_LEVEL' must be either 'debug', 'info', 'warning', or 'error'. Current value: '{logging_level}'."
         )
         
-    def get_docker_version(self) -> str:
+    def get_docker_image_version(self) -> str:
         """
-        Return the Docker version from environment variable 'DOCKER_VERSION'.
+        Return the Docker version from environment variable 'DOCKER_IMAGE'.
         """
 
-        docker_version = self._get_env(name="DOCKER_VERSION", default="unknown")
+        docker_version = self._get_env(name="DOCKER_IMAGE", default="unknown")
         
         if docker_version == "unknown":
-            logging.warning("Couldn't get Docker version from env variable 'DOCKER_VERSION'. (Ignore if you're running this script outside of Docker)")
-        elif docker_version == "dockerversion":
-            logging.error("Couldn't get Docker version from env variable 'DOCKER_VERSION'. GitHub workflow didn't insert the sha to the ARG 'VERSION'.")
+            logging.warning("Couldn't get Docker version from env variable 'DOCKER_IMAGE'. (Ignore if you're running this script outside of Docker)")
 
         return docker_version
 
@@ -1099,15 +1097,15 @@ class Nextcloud:
 
         self._upload_file(filename, data.encode("utf-8"))
         
-    def upload_docker_version(self) -> None:
+    def upload_docker_image_version(self) -> None:
         """
-        Upload a Docker version file indicating the Docker Image currently used.
+        Upload a Docker image version file indicating the Docker image currently used.
         """
 
-        filename = "Docker_Version.txt"
+        filename = "Docker_Image_Version.txt"
 
-        docker_version = Environment().get_docker_version()
-        data = "Docker Version:\n" + docker_version
+        docker_image = Environment().get_docker_image_version()
+        data = "Docker Image Version:\n" + docker_image
 
         self._upload_file(filename, data.encode("utf-8"))
         

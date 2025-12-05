@@ -229,7 +229,7 @@ class CustomMain(Main):
 
         nc.upload_last_updated()
         
-        nc.upload_docker_version()
+        nc.upload_docker_image_version()
 
 
 if __name__ == "__main__":
