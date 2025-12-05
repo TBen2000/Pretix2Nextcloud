@@ -4,6 +4,9 @@ FROM python:3.12-slim
 
 LABEL org.opencontainers.image.source=https://github.com/TBen2000/Pretix2Nextcloud
 
+ARG VERSION=dockerversion
+ENV DOCKER_VERSION=$VERSION
+
 WORKDIR /app
 
 RUN python -m venv /app/venv

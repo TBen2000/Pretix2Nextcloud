@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Docker login using a secure action
+      # Docker login
       - name: Docker login
         uses: docker/login-action@v2
         with:
@@ -22,6 +22,7 @@ jobs:
         run: |
           docker build . \
             -f kv-stuttgart_jungschartag/Dockerfile \
+            --build-arg VERSION=${{ github.sha }} \
             --tag ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag:latest
 
           docker push ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag:latest

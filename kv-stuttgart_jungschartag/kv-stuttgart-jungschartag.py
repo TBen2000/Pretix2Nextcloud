@@ -56,8 +56,6 @@ class Dataframe:
         self.town_dfs = self._get_town_dfs()
         self.numbers_overview = self._get_numbers_df()
 
-        del pretix
-        del env
 
     def _get_sorted_df(self) -> pd.DataFrame:
         """
@@ -230,6 +228,8 @@ class CustomMain(Main):
         self.upload(excel, nc, dataframe.numbers_overview, "Anmeldezahlen")
 
         nc.upload_last_updated()
+        
+        nc.upload_docker_version()
 
 
 if __name__ == "__main__":
