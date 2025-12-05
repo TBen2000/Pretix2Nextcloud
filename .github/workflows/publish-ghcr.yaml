@@ -22,7 +22,7 @@ jobs:
       # IMAGE 1 — pretix2nextcloud-kv-stuttgart-jungschartag
       ##################################################################
 
-      - name: Build base image – kv-stuttgart-jungschartag
+      - name: Build base image -> kv-stuttgart-jungschartag
         run: |
           IMAGE=ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag
           DOCKERFILE=kv-stuttgart_jungschartag/Dockerfile
@@ -31,8 +31,8 @@ jobs:
             -f $DOCKERFILE \
             --tag $IMAGE:base
 
-      - name: Push base image – kv-stuttgart-jungschartag
-        id: push_base_jungschartag
+      - name: Push base image -> kv-stuttgart-jungschartag
+        id: push_base_kv-stuttgart-jungschartag
         run: |
           IMAGE=ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag
 
@@ -42,10 +42,10 @@ jobs:
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
 
       # Build the final image with digest injected as env
-      - name: Build final image with digest – kv-stuttgart-jungschartag
+      - name: Build final image with digest -> kv-stuttgart-jungschartag
         run: |
           IMAGE=ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag
-          DIGEST="${{ steps.push_base_jungschartag.outputs.digest }}"
+          DIGEST="${{ steps.push_base_kv-stuttgart-jungschartag.outputs.digest }}"
 
           echo "FROM $IMAGE:base" > Dockerfile.inject
           echo "ENV DOCKER_IMAGE=$DIGEST" >> Dockerfile.inject
@@ -54,7 +54,7 @@ jobs:
             -f Dockerfile.inject \
             --tag $IMAGE:latest
 
-      - name: Push final image – kv-stuttgart-jungschartag
+      - name: Push final image -> kv-stuttgart-jungschartag
         run: |
           IMAGE=ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag
           docker push $IMAGE:latest
