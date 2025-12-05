@@ -1105,7 +1105,7 @@ class Nextcloud:
         filename = "Docker_Image_Version.txt"
 
         docker_image = Environment().get_docker_image_version()
-        data = "Docker Image Version:\n" + docker_image
+        data = "Docker Image Base Version:\n" + docker_image
 
         self._upload_file(filename, data.encode("utf-8"))
         
