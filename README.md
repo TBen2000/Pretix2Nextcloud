@@ -46,7 +46,7 @@ You can also add following optional environment variables if you need to customi
 
 `INTERVAL_MINUTES` defines how long the tool waits between two runs. `CHECK_INTERVAL_SECONDS` defines how often the tool checks if it's time to run again. Both are only relevant if `RUN_ONCE` is set to `false`.
 
-LOGGING_LEVEL can be set to one of the following values: `DEBUG`, `INFO`, `WARNING`, `ERROR`.
+`LOGGING_LEVEL` can be set to one of the following values: `DEBUG`, `INFO`, `WARNING`, `ERROR`.
 
 <br>
 
