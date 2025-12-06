@@ -1141,19 +1141,22 @@ class Main:
         # schedule loop for continuous execution
         self.schedule_loop()
 
-    def upload(self, excel_handler: Excel, nc_handler: Nextcloud, df: pd.DataFrame, filename: str, add_filters: bool = False):
+    def upload(self, df: pd.DataFrame, filename: str, add_filters: bool = False):
         """
         Generate excel file from dataframe, upload excel file and delete it afterwards. Can also add filters to excel file.
         """
         
-        filepath = excel_handler.save_to_excel(df, filename)
+        excel = Excel()
+        nc = Nextcloud()
+        
+        filepath = excel.save_to_excel(df, filename)
 
         if add_filters is True:
-            excel_handler.add_filters(filepath)
+            excel.add_filters(filepath)
 
-        nc_handler.upload_excel(filepath)
+        nc.upload_excel(filepath)
 
-        excel_handler.delete_excel(filepath)
+        excel.delete_excel(filepath)
 
     def schedule_loop(self):
         env = Environment()

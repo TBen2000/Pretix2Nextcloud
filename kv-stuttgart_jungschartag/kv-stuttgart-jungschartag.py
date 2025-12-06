@@ -207,24 +207,23 @@ class CustomMain(Main):
         """
         
         dataframe = Dataframe(self.success_on_last_run)
-        excel = Excel()
         nc = Nextcloud()
 
         nc.create_upload_directory()
 
         # generate, upload and delete raw data file
-        self.upload(excel, nc, dataframe.raw_df, "Raw_Data", add_filters=True)
+        self.upload(dataframe.raw_df, "Raw_Data", add_filters=True)
 
         # generate, upload and delete all attendees file
-        self.upload(excel, nc, dataframe.sorted_df, "Alle", add_filters=True)
+        self.upload(dataframe.sorted_df, "Alle", add_filters=True)
 
         # generate, upload and delete town-wise attendees files
         for town in dataframe.town_dfs:
             df = dataframe.town_dfs[town]
-            self.upload(excel, nc, df, town)
+            self.upload(df, town)
 
         # generate, upload and delete all numbers_overview file
-        self.upload(excel, nc, dataframe.numbers_overview, "Anmeldezahlen")
+        self.upload(dataframe.numbers_overview, "Anmeldezahlen")
 
         nc.upload_last_updated()
         
