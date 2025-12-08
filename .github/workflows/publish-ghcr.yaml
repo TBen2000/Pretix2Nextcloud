@@ -29,53 +29,61 @@ jobs:
               - 'P2N.py'
               - 'requirements.txt'
               - '.github/workflows/publish-ghcr.yaml'
-            kv-stuttgart-jungschartag:
+            jungschartag:
               - 'kv-stuttgart_jungschartag/**'
-            kv-stuttgart-teencamp:
+            teencamp:
               - 'kv-stuttgart_teencamp/**'
-            kv-stuttgart-zeltlager_jungs:
+            zeltlager_jungs:
               - 'kv-stuttgart_zeltlager-jungs/**'
-            kv-stuttgart-zeltlager_maedels:
+            zeltlager_maedels:
               - 'kv-stuttgart_zeltlager-maedels/**'
 
-      # Generate JSON Matrix for next job
       - name: Generate Matrix
         id: set-matrix
         shell: python
+        # WICHTIG: Hier übergeben wir das JSON als Environment Variable
+        env:
+          CHANGES_JSON: ${{ toJson(steps.changes.outputs) }}
         run: |
           import json
           import os
 
-          # Konfiguration aller deiner Images
-          # folder: Der Ordnername im Repo
-          # name:  Der Teil des Image-Namens nach 'pretix2nextcloud-'
-          # id:    Muss mit dem Filter-Namen oben übereinstimmen
+          # Konfiguration deiner Images
           all_images = [
-            {"id": "kv-stuttgart-jungschartag",      "folder": "kv-stuttgart_jungschartag",      "name": "kv-stuttgart-jungschartag"},
-            {"id": "kv-stuttgart-teencamp",          "folder": "kv-stuttgart_teencamp",          "name": "kv-stuttgart-teencamp"},
-            {"id": "kv-stuttgart-zeltlager_jungs",   "folder": "kv-stuttgart_zeltlager-jungs",   "name": "kv-stuttgart-zeltlager-jungs"},
-            {"id": "kv-stuttgart-zeltlager_maedels", "folder": "kv-stuttgart_zeltlager-maedels", "name": "kv-stuttgart-zeltlager-maedels"}
+            {"id": "jungschartag",      "folder": "kv-stuttgart_jungschartag",      "name": "kv-stuttgart-jungschartag"},
+            {"id": "teencamp",          "folder": "kv-stuttgart_teencamp",          "name": "kv-stuttgart-teencamp"},
+            {"id": "zeltlager_jungs",   "folder": "kv-stuttgart_zeltlager-jungs",   "name": "kv-stuttgart-zeltlager-jungs"},
+            {"id": "zeltlager_maedels", "folder": "kv-stuttgart_zeltlager-maedels", "name": "kv-stuttgart-zeltlager-maedels"}
           ]
 
-          # Änderungen aus dem vorherigen Schritt lesen
-          changes = json.loads('${{ toJson(steps.changes.outputs) }}')
-          
+          # Daten sicher aus der Umgebungsvariable laden
+          try:
+              changes = json.loads(os.environ['CHANGES_JSON'])
+              print(f"Detected changes: {changes}")
+          except Exception as e:
+              print(f"Error parsing JSON: {e}")
+              changes = {}
+
           final_list = []
           
-          # LOGIK: Wenn Global oder Workflow Dispatch -> Alles bauen
-          if changes.get('global') == 'true' or '${{ github.event_name }}' == 'workflow_dispatch':
-              print("Global change detected. Building ALL images.")
+          # LOGIK: Global oder Workflow Dispatch -> Alles bauen
+          is_global = changes.get('global') == 'true'
+          is_manual = '${{ github.event_name }}' == 'workflow_dispatch'
+
+          if is_global or is_manual:
+              print("Global change or manual dispatch detected. Building ALL images.")
               final_list = all_images
           else:
-              # Sonst: Nur die Images bauen, deren Ordner sich geändert hat
+              # Sonst: Nur geänderte Ordner
               for img in all_images:
                   if changes.get(img['id']) == 'true':
                       final_list.append(img)
 
-          # Output setzen für GitHub Actions
+          # Output setzen
           if len(final_list) > 0:
               print(f"Building images: {[i['name'] for i in final_list]}")
               with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+                  # JSON muss für den Output wieder als String ohne Newlines formatiert werden
                   fh.write(f"matrix={json.dumps(final_list)}\n")
                   fh.write("should_run=true\n")
           else:
