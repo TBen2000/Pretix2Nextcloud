@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 # import P2N.py
 try:
-    from P2N import Main, Environment, PretixAPI, Excel, Nextcloud
+    from P2N import Main, Environment, PretixAPI
 except ImportError:
     raise ImportError("Could not import P2N.py from current or parent directory.")
 
@@ -206,28 +206,26 @@ class CustomMain(Main):
         Main function to generate Excel files and upload them to Nextcloud.
         """
         
+        # fetch and sort data
         dataframe = Dataframe(self.success_on_last_run)
-        nc = Nextcloud()
 
-        nc.create_upload_directory()
-
-        # generate, upload and delete raw data file
+        # generate and upload excel file for raw data
         self.upload(dataframe.raw_df, "Raw_Data", add_filters=True)
 
-        # generate, upload and delete all attendees file
-        self.upload(dataframe.sorted_df, "Alle", add_filters=True)
+        # generate and upload excel file for all attendees
+        self.upload(dataframe.sorted_df, "Alle.xlsx", add_filters=True)
 
-        # generate, upload and delete town-wise attendees files
+        # generate and upload excel file for town-wise attendees
         for town in dataframe.town_dfs:
             df = dataframe.town_dfs[town]
-            self.upload(df, town)
+            self.upload(df, town, subdir="Nach_Orten")
 
-        # generate, upload and delete all numbers_overview file
+        # generate and upload excel file for numbers overview
         self.upload(dataframe.numbers_overview, "Anmeldezahlen")
 
-        nc.upload_last_updated()
+        self.nc.upload_last_updated()
         
-        nc.upload_docker_image_version()
+        self.nc.upload_docker_image_version()
 
 
 if __name__ == "__main__":
