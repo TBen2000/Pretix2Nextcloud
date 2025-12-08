@@ -29,34 +29,34 @@ jobs:
               - 'P2N.py'
               - 'requirements.txt'
               - '.github/workflows/publish-ghcr.yaml'
-            jungschartag:
+            kv-stuttgart-jungschartag:
               - 'kv-stuttgart_jungschartag/**'
-            teencamp:
+            kv-stuttgart-teencamp:
               - 'kv-stuttgart_teencamp/**'
-            zeltlager_jungs:
+            kv-stuttgart-zeltlager_jungs:
               - 'kv-stuttgart_zeltlager-jungs/**'
-            zeltlager_maedels:
+            kv-stuttgart-zeltlager_maedels:
               - 'kv-stuttgart_zeltlager-maedels/**'
 
       - name: Generate Matrix
         id: set-matrix
         shell: python
-        # WICHTIG: Hier übergeben wir das JSON als Environment Variable
         env:
           CHANGES_JSON: ${{ toJson(steps.changes.outputs) }}
         run: |
           import json
           import os
 
-          # Konfiguration deiner Images
+          # Image configuration
+          # id: must match the filter name above
           all_images = [
-            {"id": "jungschartag",      "folder": "kv-stuttgart_jungschartag",      "name": "kv-stuttgart-jungschartag"},
-            {"id": "teencamp",          "folder": "kv-stuttgart_teencamp",          "name": "kv-stuttgart-teencamp"},
-            {"id": "zeltlager_jungs",   "folder": "kv-stuttgart_zeltlager-jungs",   "name": "kv-stuttgart-zeltlager-jungs"},
-            {"id": "zeltlager_maedels", "folder": "kv-stuttgart_zeltlager-maedels", "name": "kv-stuttgart-zeltlager-maedels"}
+            {"id": "kv-stuttgart-jungschartag",      "folder": "kv-stuttgart_jungschartag",      "name": "kv-stuttgart-jungschartag"},
+            {"id": "kv-stuttgart-teencamp",          "folder": "kv-stuttgart_teencamp",          "name": "kv-stuttgart-teencamp"},
+            {"id": "kv-stuttgart-zeltlager_jungs",   "folder": "kv-stuttgart_zeltlager-jungs",   "name": "kv-stuttgart-zeltlager-jungs"},
+            {"id": "kv-stuttgart-zeltlager_maedels", "folder": "kv-stuttgart_zeltlager-maedels", "name": "kv-stuttgart-zeltlager-maedels"}
           ]
 
-          # Daten sicher aus der Umgebungsvariable laden
+          # Load data from environment variable
           try:
               changes = json.loads(os.environ['CHANGES_JSON'])
               print(f"Detected changes: {changes}")
@@ -66,7 +66,7 @@ jobs:
 
           final_list = []
           
-          # LOGIK: Global oder Workflow Dispatch -> Alles bauen
+          # LOGIC: Global change or Workflow Dispatch -> Build EVERYTHING
           is_global = changes.get('global') == 'true'
           is_manual = '${{ github.event_name }}' == 'workflow_dispatch'
 
@@ -74,16 +74,16 @@ jobs:
               print("Global change or manual dispatch detected. Building ALL images.")
               final_list = all_images
           else:
-              # Sonst: Nur geänderte Ordner
+              # Otherwise: Build only changed folders
               for img in all_images:
                   if changes.get(img['id']) == 'true':
                       final_list.append(img)
 
-          # Output setzen
+          # Set output
           if len(final_list) > 0:
               print(f"Building images: {[i['name'] for i in final_list]}")
               with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-                  # JSON muss für den Output wieder als String ohne Newlines formatiert werden
+                  # JSON must be formatted as a string without newlines for the output
                   fh.write(f"matrix={json.dumps(final_list)}\n")
                   fh.write("should_run=true\n")
           else:
@@ -124,7 +124,6 @@ jobs:
       - name: Build base image -> ${{ matrix.name }}
         run: |
           IMAGE=ghcr.io/${{ github.repository_owner }}/pretix2nextcloud-${{ matrix.name }}
-          # Kleinschreibung erzwingen (Docker mag keine Großbuchstaben)
           IMAGE=$(echo $IMAGE | tr '[:upper:]' '[:lower:]')
           
           DOCKERFILE=${{ matrix.folder }}/Dockerfile
@@ -155,7 +154,6 @@ jobs:
 
           echo "Injecting Digest: $DIGEST"
 
-          # Hier wird dein Injektions-Trick angewendet
           echo "FROM $IMAGE:base" > Dockerfile.inject
           echo "ENV DOCKER_IMAGE=$DIGEST" >> Dockerfile.inject
 
