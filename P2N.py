@@ -15,6 +15,8 @@ from pathlib import Path
 from openpyxl import load_workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
 import base64
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 logging.basicConfig(level=logging.INFO)
 
@@ -980,14 +982,28 @@ class Nextcloud:
         env = Environment()
 
         nextcloud_url = env.get_nextcloud_url()
-        self.username = env.get_nextcloud_username()
-        self.password = env.get_nextcloud_password()
+        username = env.get_nextcloud_username()
+        password = env.get_nextcloud_password()
         self.upload_dir = env.get_nextcloud_upload_dir()
         self.time_zone = env.get_timezone()
 
         self.base_url = os.path.join(
-            nextcloud_url, "remote.php/dav/files", self.username
+            nextcloud_url, "remote.php/dav/files", username
         )
+        
+        self.session = requests.Session()
+        self.session.auth = HTTPBasicAuth(username, password)
+
+        retries = Retry(
+            total=3,
+            backoff_factor=0.3,
+            status_forcelist=[500, 502, 503, 504],
+            allowed_methods=["MKCOL", "PUT", "GET", "HEAD", "DELETE"]
+        )
+
+        adapter = HTTPAdapter(max_retries=retries)
+        self.session.mount("https://", adapter)
+        self.session.mount("http://", adapter)
         
 
     def _sanitize_filename(self, filename: str) -> str:
@@ -1044,12 +1060,11 @@ class Nextcloud:
         
         try:
             # Try to create the direct directory first
-            r = requests.request(
-                    method="MKCOL",
-                    url=os.path.join(webdav_url),
-                    auth=HTTPBasicAuth(self.username, self.password),
-                )
-            
+            r = self.session.request(
+                method="MKCOL",
+                url=os.path.join(webdav_url),
+            )
+
             if r.status_code == 405:
                 logging.debug(f"Nextcloud directory already exists ({webdav_url})")
                 return
@@ -1064,10 +1079,9 @@ class Nextcloud:
                 
                 dir_path = os.path.join(self.upload_dir, directory)
                 for dir in self._get_parent_directories(dir_path):
-                    r = requests.request(
+                    r = self.session.request(
                         method="MKCOL",
                         url=os.path.join(self.base_url, dir),
-                        auth=HTTPBasicAuth(self.username, self.password),
                     )
 
                     if r.status_code not in [201, 405]:
@@ -1078,6 +1092,7 @@ class Nextcloud:
 
         except Exception as e:
             raise Exception(f"Error creating upload directory: {e}")
+        
         
     
     def upload_file(self, filename: str, data: bytes, subdir: str = "") -> None:
@@ -1097,10 +1112,9 @@ class Nextcloud:
         self.create_dir(subdir)            
         
         try:
-            r = requests.put(
+            r = self.session.put(
                 url=os.path.join(self.base_url, upload_dir, filename),
                 data=data,
-                auth=HTTPBasicAuth(self.username, self.password),
             )
 
             if r.status_code in (200, 201, 204):
