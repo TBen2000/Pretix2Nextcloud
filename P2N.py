@@ -532,7 +532,21 @@ class PretixAPI:
         self.pretix_api_url = os.path.join(
             pretix_url, "api/v1/organizers", pretix_organizer, "events", pretix_event
         )
-        self.headers = {"Authorization": f"Token {pretix_api_token}"}
+
+        self.session = requests.Session()
+        self.session.headers.update({"Authorization": f"Token {pretix_api_token}"})
+
+        retries = Retry(
+            total=5,
+            backoff_factor=0.5,
+            status_forcelist=[500, 502, 503, 504],
+            allowed_methods=["GET"],
+        )
+
+        adapter = HTTPAdapter(max_retries=retries)
+        self.session.mount("https://", adapter)
+        self.session.mount("http://", adapter)
+
 
     def _get_questions(self) -> dict:
         """
@@ -543,9 +557,9 @@ class PretixAPI:
         questions = {}
 
         while url:
-            response = requests.get(url, headers=self.headers)
-            response.raise_for_status()
-            data = response.json()
+            r = self.session.get(url)
+            r.raise_for_status()
+            data = r.json()
 
             for q in data["results"]:
                 question_text = q["question"].get("de") or next(
@@ -556,6 +570,7 @@ class PretixAPI:
             url = data["next"]  # Pagination
 
         return questions
+
 
     def get_question_choices_by_text(self, question_str: str) -> list:
         """
@@ -593,9 +608,9 @@ class PretixAPI:
         for qid in matching_qids:
             url = f"{self.pretix_api_url}/questions/{qid}/"
             try:
-                resp = requests.get(url, headers=self.headers)
-                resp.raise_for_status()
-                data = resp.json()
+                r = self.session.get(url)
+                r.raise_for_status()
+                data = r.json()
 
                 # pretix may expose options under different keys depending on API version/implementation
                 options = []
@@ -670,6 +685,7 @@ class PretixAPI:
 
         return sorted(all_choices)
 
+
     def _get_items(self) -> dict:
         """
         Fetch all items from Pretix API and return a mapping of item ID to item name.
@@ -679,9 +695,9 @@ class PretixAPI:
         items = {}
 
         while url:
-            response = requests.get(url, headers=self.headers)
-            response.raise_for_status()
-            data = response.json()
+            r = self.session.get(url)
+            r.raise_for_status()
+            data = r.json()
 
             for i in data["results"]:
                 item_name = i["name"].get("de") or next(iter(i["name"].values()))
@@ -690,6 +706,7 @@ class PretixAPI:
             url = data["next"]  # Pagination
 
         return items
+
 
     def _get_orders(self) -> list:
         """
@@ -700,25 +717,19 @@ class PretixAPI:
         orders = []
 
         while url:
-            response = requests.get(url, headers=self.headers)
-            response.raise_for_status()
-            data = response.json()
+            r = self.session.get(url)
+            r.raise_for_status()
+            data = r.json()
 
             orders.extend(data["results"])
             url = data["next"]  # Pagination
 
         return orders
 
+
     def _get_unique_column_name(self, base_name: str, existing_columns: list) -> str:
         """
         Generate a unique column name by adding (#2), (#3), etc. suffix if needed.
-
-        Args:
-            base_name: The desired column name
-            existing_columns: List of column names that already exist
-
-        Returns:
-            Unique column name (either base_name or base_name with " (#n)" suffix)
         """
 
         if base_name not in existing_columns:
@@ -730,6 +741,7 @@ class PretixAPI:
             counter += 1
 
         return f"{base_name} (#{counter})"
+
 
     def get_raw_df(self) -> pd.DataFrame:
         """
@@ -778,9 +790,7 @@ class PretixAPI:
 
                 pos_info = {
                     "position_id": position["id"],
-                    "item_id": item_id
-                    if not isinstance(item_id, dict)
-                    else item_id["id"],
+                    "item_id": item_id if not isinstance(item_id, dict) else item_id["id"],
                     "item_name": item_name,
                     "price": position["price"],
                     "attendee_firstname": attendee_firstname,
@@ -995,8 +1005,8 @@ class Nextcloud:
         self.session.auth = HTTPBasicAuth(username, password)
 
         retries = Retry(
-            total=3,
-            backoff_factor=0.3,
+            total=5,
+            backoff_factor=0.5,
             status_forcelist=[500, 502, 503, 504],
             allowed_methods=["MKCOL", "PUT", "GET", "HEAD", "DELETE"]
         )
