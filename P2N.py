@@ -988,9 +988,28 @@ class Nextcloud:
         self.base_url = os.path.join(
             nextcloud_url, "remote.php/dav/files", self.username
         )
+        
 
-        self.upload_dir_url = os.path.join(self.base_url, self.upload_dir)
+    def _sanitize_filename(self, filename: str) -> str:
+        """
+        Sanitize the filename by replacing or removing invalid characters.
+        """
+        filename = filename.strip()
+        filename = filename.replace("\\n", " ")
+        filename = filename.replace("\\r", " ")
+        filename = filename.replace("\\t", " ")
+        filename = filename.replace("<", "_")
+        filename = filename.replace(">", "_")
+        filename = filename.replace(":", "")
+        filename = filename.replace('"', "")
+        filename = filename.replace("/", "+")
+        filename = filename.replace("\\", "_")
+        filename = filename.replace("|", "_")
+        filename = filename.replace("?", "")
+        filename = filename.replace("*", "")
 
+        return filename
+    
 
     def _get_parent_directories(self, path: str) -> list[str]:
         """
@@ -1010,57 +1029,82 @@ class Nextcloud:
 
         # reverse the list to have the directories in hierarchical order from top to bottom.
         return parent_dirs[::-1]
-
-    def create_upload_directory(self) -> None:
+            
+        
+    def create_dir(self, directory: str) -> None:
         """
-        Create the upload directory on Nextcloud if it does not exist.
+        Create directory on Nextcloud.
         """
-
-        # check if directory exists:
-        r = requests.request(
-            method="PROPFIND",
-            url=self.upload_dir_url,
-            auth=HTTPBasicAuth(self.username, self.password),
-        )
-
-        if r.status_code == 207:
-            logging.info(f"Upload directory already exists ('{self.upload_dir_url}')")
-            return
-
-        # ceate directory
+        
+        full_dir = os.path.join(self.upload_dir, directory)
+        webdav_url = os.path.join(self.base_url, full_dir)
+        
+        if "../" in full_dir or "/.." in full_dir:  # if directory tries to use parent directories and tries to upload to a destination outside of the given upload directory
+            logging.warning(f"DO NOT USE '/../' segments in your directory path! This may create directories outside your upload directory! PROCEED WITH CAUTION ON YOUR OWN RISK!\nURL: {webdav_url}")
+        
         try:
-            for dir in self._get_parent_directories(self.upload_dir):
-                r = requests.request(
+            # Try to create the direct directory first
+            r = requests.request(
                     method="MKCOL",
-                    url=os.path.join(self.base_url, dir),
+                    url=os.path.join(webdav_url),
                     auth=HTTPBasicAuth(self.username, self.password),
                 )
-
-                if r.status_code not in [201, 405]:
-                    logging.error(
-                        f"Error creating upload directory: {r.status_code} - {r.text}"
+            
+            if r.status_code == 405:
+                logging.debug(f"Nextcloud directory already exists ({webdav_url})")
+                return
+            
+            if r.status_code == 201:
+                logging.debug(f"Created Nextcloud directory ({webdav_url})")
+                logging.info(f"Created Nextcloud directory ({full_dir})")
+                return
+            
+            if r.status_code == 409:
+                logging.debug(f"Creating Nextcloud directory: Parent node does not exist ({webdav_url}). Creating parent directories now.")
+                
+                dir_path = os.path.join(self.upload_dir, directory)
+                for dir in self._get_parent_directories(dir_path):
+                    r = requests.request(
+                        method="MKCOL",
+                        url=os.path.join(self.base_url, dir),
+                        auth=HTTPBasicAuth(self.username, self.password),
                     )
-                    return
 
-            logging.info(f"Upload directory created ('{self.upload_dir_url}')")
+                    if r.status_code not in [201, 405]:
+                        raise Exception(f"Error creating Nextcloud directory: {r.status_code} - {r.text}")
+
+                logging.debug(f"Created Nextcloud directory ({webdav_url})")
+                logging.info(f"Created Nextcloud directory ({full_dir})")
 
         except Exception as e:
-            logging.error(f"Error creating upload directory: {e}")
-
-    def _upload_file(self, filename: str, data: bytes) -> None:
+            raise Exception(f"Error creating upload directory: {e}")
+        
+    
+    def upload_file(self, filename: str, data: bytes, subdir: str = "") -> None:
         """
-        Upload a file to Nextcloud via WebDAV.
+        Upload a file to Nextcloud via WebDAV. Destination of the uploaded file is the given Upload Directory in env variable NEXTCLOUD_UPLOAD_DIR plus optionally a given subdirectory.
         """
-
+        
+        # Add parent directories in filename to subdir (e.g. "A/B/file.txt" in subdir="A" and filename = "B/file.txt")
+        filepath, filename = os.path.split(filename)
+        subdir = os.path.join(subdir, filepath.strip("/\\"))
+        
+        upload_dir = os.path.join(self.upload_dir, subdir)
+        
+        if "../" in upload_dir or "/.." in upload_dir:  # if directory tries to use parent directories and tries to upload to a destination outside of the given upload directory
+            raise Exception(f"DO NOT USE '/../' segments in your directory path! This may alter files outside your upload directory! PROCEED WITH CAUTION ON YOUR OWN RISK!\nURL: {upload_dir}")
+        
+        self.create_dir(subdir)            
+        
         try:
             r = requests.put(
-                url=os.path.join(self.upload_dir_url, filename),
+                url=os.path.join(self.base_url, upload_dir, filename),
                 data=data,
                 auth=HTTPBasicAuth(self.username, self.password),
             )
 
             if r.status_code in (200, 201, 204):
-                logging.info(f"File '{filename}' uploaded successfully.")
+                logging.info(f"File '{os.path.join(subdir, filename)}' uploaded successfully.")
             else:
                 logging.error(
                     f"Error uploading file '{filename}': {r.status_code} - {r.text}"
@@ -1069,45 +1113,52 @@ class Nextcloud:
         except Exception as e:
             logging.error(f"Network error uploading file '{filename}': {e}")
 
-    def upload_excel(self, source_file: str) -> None:
+    def upload_excel(self, source_file: str, subdir: str = "") -> None:
         """
         Upload an Excel file to Nextcloud.
         """
 
         try:
             filename = os.path.basename(source_file)
-            if not filename.endswith(".xlsx"):
+            filename = self._sanitize_filename(filename)
+            if not filename.lower().endswith(".xlsx"):
                 raise Exception("File is not an Excel file (.xlsx)")
 
             with open(source_file, "rb") as f:
                 data = f.read()
-            self._upload_file(filename, data)
+            self.upload_file(filename, data, subdir)
         except Exception as e:
             logging.error(f"Error uploading Excel file '{source_file}': {e}")
 
-    def upload_last_updated(self) -> None:
+    def upload_last_updated(self, filename = "Last_Updated.txt", subdir: str = "") -> None:
         """
         Upload a timestamp file indicating the last update time.
         """
-
-        filename = "Last_Updated.txt"
+        
+        filename = self._sanitize_filename(filename)
+        
+        if not filename.lower().endswith(".txt"):
+            filename += ".txt"
 
         tz = pytz.timezone(self.time_zone)
         data = "Last updated:\n" + datetime.now(tz=tz).strftime("%d.%m.%Y %H:%M")
 
-        self._upload_file(filename, data.encode("utf-8"))
+        self.upload_file(filename, data.encode("utf-8"), subdir)
         
-    def upload_docker_image_version(self) -> None:
+    def upload_docker_image_version(self, filename: str = "Docker_Image_Version.txt", subdir: str = "") -> None:
         """
         Upload a Docker image version file indicating the Docker image currently used.
         """
-
-        filename = "Docker_Image_Version.txt"
+        
+        filename = self._sanitize_filename(filename)
+        
+        if not filename.lower().endswith(".txt"):
+            filename += ".txt"
 
         docker_image = Environment().get_docker_image_version()
         data = "Docker Image Base Version:\n" + docker_image
 
-        self._upload_file(filename, data.encode("utf-8"))
+        self.upload_file(filename, data.encode("utf-8"), subdir)
         
 
 class Main:
@@ -1141,22 +1192,19 @@ class Main:
         # schedule loop for continuous execution
         self.schedule_loop()
 
-    def upload(self, df: pd.DataFrame, filename: str, add_filters: bool = False):
+    def upload(self, df: pd.DataFrame, filename: str, subdir: str = "", add_filters: bool = False):
         """
         Generate excel file from dataframe, upload excel file and delete it afterwards. Can also add filters to excel file.
         """
         
-        excel = Excel()
-        nc = Nextcloud()
-        
-        filepath = excel.save_to_excel(df, filename)
+        filepath = self.excel.save_to_excel(df, filename)
 
         if add_filters is True:
-            excel.add_filters(filepath)
+            self.excel.add_filters(filepath)
 
-        nc.upload_excel(filepath)
+        self.nc.upload_excel(filepath, subdir)
 
-        excel.delete_excel(filepath)
+        self.excel.delete_excel(filepath)
 
     def schedule_loop(self):
         env = Environment()
@@ -1170,6 +1218,13 @@ class Main:
             time.sleep(
                 env.get_check_interval_seconds()
             )  # check periodically if a task needs to run
+            
+    def upload_last_updated(self):
+        try:
+            self.nc.upload_last_updated()
+        except Exception as e:
+            raise Exception(f"An error occurred while uploading last updated timestamp: {e}")
+        
 
     def main_wrapper(self):
         """
@@ -1177,19 +1232,20 @@ class Main:
         """
 
         try:
+            self.excel = Excel()
+            self.nc = Nextcloud()
+            
             self.main()
+            
             self.success_on_last_run = True
 
         except Exception as e:
             if str(e) == "No changes in data since last fetch.":
-                logging.info("No changes detected since last fetch. Skipping upload.")
+                logging.info("No changes in data detected since last fetch. Skipping upload process.")
                 try:
-                    nc = Nextcloud()
-                    nc.upload_last_updated()
+                    self.upload_last_updated()
                 except Exception as e:
-                    logging.error(
-                        f"An error occurred while uploading last updated timestamp: {e}"
-                    )
+                    logging.error(e)
 
             else:
                 logging.error(f"An error occurred during execution: {e}")
