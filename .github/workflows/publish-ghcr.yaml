@@ -12,6 +12,9 @@ jobs:
   # ------------------------------------------------------------------
   # JOB 1: Evaluate what to build
   # ------------------------------------------------------------------
+  # ------------------------------------------------------------------
+  # JOB 1: Evaluate what to build
+  # ------------------------------------------------------------------
   target-selector:
     runs-on: ubuntu-latest
     outputs:
@@ -23,6 +26,7 @@ jobs:
       - name: Check for file changes
         uses: dorny/paths-filter@v2
         id: changes
+        if: github.event_name != 'workflow_dispatch' 
         with:
           filters: |
             global:
@@ -48,7 +52,6 @@ jobs:
           import os
 
           # Image configuration
-          # id: must match the filter name above
           all_images = [
             {"id": "kv-stuttgart-jungschartag",      "folder": "kv-stuttgart_jungschartag",      "name": "kv-stuttgart-jungschartag"},
             {"id": "kv-stuttgart-teencamp",          "folder": "kv-stuttgart_teencamp",          "name": "kv-stuttgart-teencamp"},
@@ -56,28 +59,40 @@ jobs:
             {"id": "kv-stuttgart-zeltlager_maedels", "folder": "kv-stuttgart_zeltlager-maedels", "name": "kv-stuttgart-zeltlager-maedels"}
           ]
 
-          # Load data from environment variable
+          # Safely load data from environment variable. If the paths-filter step was skipped (e.g. manual dispatch), 
+          # CHANGES_JSON will be 'null' when event_name is 'workflow_dispatch'.
           try:
-              changes = json.loads(os.environ['CHANGES_JSON'])
+              changes = json.loads(os.environ['CHANGES_JSON']) if os.environ['CHANGES_JSON'] != 'null' else {}
               print(f"Detected changes: {changes}")
           except Exception as e:
-              print(f"Error parsing JSON: {e}")
+              print(f"Error parsing JSON: {e}. Defaulting to no changes detected.")
               changes = {}
 
           final_list = []
           
-          # LOGIC: Global change or Workflow Dispatch -> Build EVERYTHING
+          # LOGIC: Global change, Manual Dispatch, or no changes detected (default to all if changes dict is empty)
           is_global = changes.get('global') == 'true'
           is_manual = '${{ github.event_name }}' == 'workflow_dispatch'
 
-          if is_global or is_manual:
-              print("Global change or manual dispatch detected. Building ALL images.")
+          if is_manual:
+              # Manual trigger always builds all
+              print("Manual dispatch detected. Building ALL images.")
+              final_list = all_images
+          elif is_global:
+              # Global file change (P2N.py, requirements.txt, workflow file) always builds all
+              print("Global file change detected. Building ALL images.")
               final_list = all_images
           else:
-              # Otherwise: Build only changed folders
+              # Otherwise: Check specific changed folders (runs only on 'push')
               for img in all_images:
                   if changes.get(img['id']) == 'true':
                       final_list.append(img)
+              
+              if len(final_list) > 0:
+                  print("Specific folder changes detected.")
+              else:
+                  print("No relevant changes detected in specific folders.")
+
 
           # Set output
           if len(final_list) > 0:
@@ -87,7 +102,7 @@ jobs:
                   fh.write(f"matrix={json.dumps(final_list)}\n")
                   fh.write("should_run=true\n")
           else:
-              print("No relevant changes detected.")
+              print("No relevant changes detected. Skipping build job.")
               with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
                   fh.write("should_run=false\n")
 
