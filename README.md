@@ -1,6 +1,6 @@
 # Pretix2Nextcloud
 
-This tool retrieves registration data for a specific event from Pretix, compiles it into the desired Excel formats, and uploads it to Nextcloud. This project was programmed for the KV-Stuttgart of the SWD-EC and is therefore not universally applicable.
+This tool retrieves registration data for a specific event from Pretix, compiles it into desired Excel formats, and uploads it to Nextcloud. This project was programmed for the KV-Stuttgart of the SWD-EC and is therefore not universally applicable.
 
 ## Setting up Pretix2Nextcloud via Docker
 
@@ -101,7 +101,7 @@ Delete `.env` file after starting the container to avoid leaking sensitive data.
 <br>
 
 ### Alternative for advandced users:
-If you're running Docker Swarm and want to use Docker secrets instead of environment variables for sensitive data like API tokens and passwords, you can set your secrets and hand over their names in following environment variables:
+If you're running Docker Swarm and want to use **Docker secrets** instead of environment variables for sensitive data like API tokens and passwords, you can set your secrets and hand over their names in following environment variables:
 
 - `NEXTCLOUD_USERNAME_SECRET_NAME` instead of `NEXTCLOUD_USERNAME`
 - `NEXTCLOUD_PASSWORD_SECRET_NAME` instead of `NEXTCLOUD_PASSWORD`
