@@ -35,14 +35,16 @@ If you want to encode your environment variables with base64, you need to use th
 
 You can also add following optional environment variables if you need to customize the behavior apart from the defaults (normally not necessary):
 
-- `PRETIX_ORGANIZER_SLUG` (default: `kv-stuttgart`)
-- `PRETIX_URL` (default: `https://tickets.swdec.de`)
-- `NEXTCLOUD_URL` (default: `https://jcloud.swdec.de`)
-- `TZ` (default: `Europe/Berlin`)
-- `RUN_ONCE` (default: `false`)
-- `INTERVAL_MINUTES` (default: `15`)
-- `CHECK_INTERVAL_SECONDS` (default: `60`)
-- `LOGGING_LEVEL` (default: `INFO`)
+| environment variable    | default value              |
+| ----------------------- | -------------------------- |
+| `PRETIX_ORGANIZER_SLUG` | `kv-stuttgart`             |
+| `PRETIX_URL`            | `https://tickets.swdec.de` |
+| `NEXTCLOUD_URL`         | `https://jcloud.swdec.de`  |
+| `TZ`                    | `Europe/Berlin`            |
+| `RUN_ONCE`              | `false`                    |
+| `INTERVAL_MINUTES`      | `15`                       |
+| `CHECK_INTERVAL_SECONDS`| `60`                       |
+| `LOGGING_LEVEL`         | `INFO`                     |
 
 `INTERVAL_MINUTES` defines how long the tool waits between two runs. `CHECK_INTERVAL_SECONDS` defines how often the tool checks if it's time to run again. Both are only relevant if `RUN_ONCE` is set to `false`.
 
@@ -77,7 +79,7 @@ Delete `.env` file after starting the container to avoid leaking sensitive data.
 <br>
 
 ### Alternative for advandced users:
-If you're running Docker Swarm and want to use Docker secrets instead of environment variables for sensitive data like API tokens and passwords, set your secrets and hand over the names for the secrets in following environment variables:
+If you're running Docker Swarm and want to use Docker secrets instead of environment variables for sensitive data like API tokens and passwords, you can set your secrets and hand over their names in following environment variables:
 
 - `NEXTCLOUD_USERNAME_SECRET_NAME` instead of `NEXTCLOUD_USERNAME`
 - `NEXTCLOUD_PASSWORD_SECRET_NAME` instead of `NEXTCLOUD_PASSWORD`
