@@ -12,6 +12,8 @@ This tool retrieves registration data for a specific event from Pretix, compiles
 
 ## Setting up Pretix2Nextcloud via Docker
 
+<br>
+
 ### Step 1:
 Install Docker from https://docs.docker.com/get-docker/
 
