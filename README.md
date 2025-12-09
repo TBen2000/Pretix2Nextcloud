@@ -1,4 +1,6 @@
-# Pretix2Nextcloud
+# <img src="logo.png" width="75"/> &nbsp; Pretix2Nextcloud
+
+
 
 This tool retrieves registration data for a specific event from Pretix, compiles it into desired Excel formats, and uploads it to Nextcloud. This project was programmed for the KV-Stuttgart of the SWD-EC and is therefore not universally applicable.
 
