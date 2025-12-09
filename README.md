@@ -20,10 +20,11 @@ Create a new file called `.env` and store your environment variables there like 
     
 
 > [!NOTE]  
-> NEXTCLOUD_PASSWORD takes leading and trailing whitespaces into account. Make sure there are none if your password doesn't contain them.
+> `NEXTCLOUD_PASSWORD` takes leading and trailing whitespaces into account. Make sure there are none if your password doesn't contain them.
 
 <br>
 
+#### _Optionally:_
 If you want to encode your environment variables with base64, you need to use the prefix `BASE64:` like e.g. 
 
     NEXTCLOUD_PASSWORD=BASE64:TXlTZWN1cmVQYXNzd29yZDEyMyE=
@@ -33,7 +34,8 @@ If you want to encode your environment variables with base64, you need to use th
 
 <br>
 
-You can also add following optional environment variables if you need to customize the behavior apart from the defaults (normally not necessary):
+#### _Optionally:_
+You can also add following optional environment variables if you need to customize the behavior apart from the defaults (_normally not necessary_):
 
 | environment variable    | default value              |
 | ----------------------- | -------------------------- |
@@ -57,19 +59,39 @@ Run the desired Docker image with one of the following commands:
 
 #### For KV Stuttgart Jungschartag:
 
-    docker run --name p2n-kv-stuttgart-jungschartag -d --restart unless-stopped --env-file .env ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag:latest
+    docker run -d \
+    --name p2n-kv-stuttgart-jungschartag \
+    --restart unless-stopped \
+    --env-file .env \
+    ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag:latest
 
 #### For KV Stuttgart Teencamp:
 
-    docker run --name p2n-kv-stuttgart-teencamp -d --restart unless-stopped --env-file .env ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-teencamp:latest
+    docker run -d \
+    --name p2n-kv-stuttgart-teencamp \
+    --restart unless-stopped \
+    --env-file .env \
+    ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-teencamp:latest
 
 #### For KV Stuttgart Zeltlager Jungs:
 
-    docker run --name p2n-kv-stuttgart-zeltlager-jungs -d --restart unless-stopped --env-file .env ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-zeltlager-jungs:latest
+    docker run -d \
+    --name p2n-kv-stuttgart-zeltlager-jungs \
+    --restart unless-stopped \
+    --env-file .env \
+    ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-zeltlager-jungs:latest
 
 #### For KV Stuttgart Zeltlager Mädels:
 
-    docker run --name p2n-kv-stuttgart-zeltlager-maedels -d --restart unless-stopped --env-file .env ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-zeltlager-maedels:latest
+    docker run -d \
+    --name p2n-kv-stuttgart-zeltlager-maedels \
+    --restart unless-stopped \
+    --env-file .env \
+    ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-zeltlager-maedels:latest
+
+<br>
+
+> These commands are structured as multiline commands. You can copy the whole command and paste it to your command line even though it contains multiple lines.
 
 <br>
 
