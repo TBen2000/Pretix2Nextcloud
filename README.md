@@ -8,14 +8,16 @@
 
 This tool retrieves registration data for a specific event from Pretix, compiles it into desired Excel formats, and uploads it to Nextcloud. This project was programmed for the KV-Stuttgart of the SWD-EC and is therefore not universally applicable.
 
+<br>
+
 ## Setting up Pretix2Nextcloud via Docker
 
-### Step 1:
+### **Step 1:**
 Install Docker from https://docs.docker.com/get-docker/
 
 <br>
 
-### Step 2:
+### **Step 2:**
 Create a new file called `.env` and store your environment variables there like this:
 
     PRETIX_EVENT_SLUG=your_event_slug
@@ -60,7 +62,7 @@ You can also add following optional environment variables if you need to customi
 
 <br>
 
-### Step 3:
+### **Step 3:**
 Run the desired Docker image with one of the following commands:
 
 #### For KV Stuttgart Jungschartag:
@@ -101,12 +103,12 @@ Run the desired Docker image with one of the following commands:
 
 <br>
 
-### Step 4:
+### **Step 4:**
 Delete `.env` file after starting the container to avoid leaking sensitive data.
 
 <br>
 
-### Alternative for advandced users:
+### **Alternative for advandced users:**
 If you're running Docker Swarm and want to use **Docker secrets** instead of environment variables for sensitive data like API tokens and passwords, you can set your secrets and hand over their names in following environment variables:
 
 - `NEXTCLOUD_USERNAME_SECRET_NAME` instead of `NEXTCLOUD_USERNAME`
