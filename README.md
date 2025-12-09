@@ -2,6 +2,8 @@
 
 <img src="logo.png" width="1000"/>
 
+<br>
+
 This tool retrieves registration data for a specific event from Pretix, compiles it into desired Excel formats, and uploads it to Nextcloud. This project was programmed for the KV-Stuttgart of the SWD-EC and is therefore not universally applicable.
 
 ## Setting up Pretix2Nextcloud via Docker
