@@ -363,7 +363,7 @@ class Environment:
         docker_version = self._get_env(name="DOCKER_IMAGE", default="unknown")
         
         if docker_version == "unknown":
-            if os.path.exists('/.dockerenv'):  # if Python script runs inside Docker
+            if os.path.exists("/.dockerenv"):  # if Python script runs inside Docker
                 logging.error("Couldn't get Docker version from env variable 'DOCKER_IMAGE'.")
 
         return docker_version
