@@ -22,23 +22,11 @@ logging.basicConfig(level=logging.INFO)
 
 
 class Environment:
-    # global variables to store default values
-    default_pretix_url = "https://tickets.swdec.de"
-    default_pretix_organizer_slug = "kv-stuttgart"
-    default_excel_max_column_width = 30
-    default_temp_dir_name = "p2n_automation"
-    default_nextcloud_url = "https://jcloud.swdec.de"
-    default_nextcloud_upload_dir = "Pretix_Anmeldungen"
-    default_timezone = "Europe/Berlin"
-    default_interval_minutes = 15
-    default_check_interval_seconds = 60
-    default_run_once = False
-    default_logging_level = "INFO"
 
     def set_defaults(
         self,
         default_pretix_url: str = None,
-        default_prtix_organizer_slug: str = None,
+        default_pretix_organizer_slug: str = None,
         default_excel_max_column_width: int = None,
         default_temp_dir_name: str = None,
         default_nextcloud_url: str = None,
@@ -50,7 +38,7 @@ class Environment:
         default_logging_level: str = None,
     ):
         """
-        Sets default values for the class. Only parameters that are not None will be applied.
+        Sets default values for the class as global class variables. Only parameters that are not None will be applied.
         """
 
         # Iterate over all parameters and assign them to the class if they are not None
@@ -59,6 +47,16 @@ class Environment:
                 continue  # skip the instance reference
             if value is not None:
                 setattr(self.__class__, attr, value)
+                
+    def _get_class_variable_value(self, name: str):
+        """
+        Returns value for a class variable set in set_defaults().
+        """
+        
+        value = getattr(self.__class__, name, None)
+        if value is None:
+            return ""
+        return value
 
     def get_pretix_url(self) -> str:
         """
@@ -66,7 +64,7 @@ class Environment:
         """
         
         try:
-            default = str(self.__class__.default_pretix_url)
+            default = str(self._get_class_variable_value("default_pretix_url"))
         except Exception:
             raise Exception(
                 "Environment.__class__.default_pretix_url can't be stringified. Check the value you entered while calling set_defaults() function."
@@ -128,7 +126,7 @@ class Environment:
         """
 
         try:
-            default = str(self.__class__.default_pretix_organizer_slug)
+            default = str(self._get_class_variable_value("default_pretix_organizer_slug"))
         except Exception:
             raise Exception(
                 "Environment.__class__.default_pretix_organizer_slug can't be stringified. Check the value you entered while calling set_defaults() function."
@@ -144,7 +142,7 @@ class Environment:
         """
 
         try:
-            default = int(self.__class__.default_excel_max_column_width)
+            default = int(self._get_class_variable_value("default_excel_max_column_width"))
         except Exception:
             raise Exception(
                 "Environment.__class__.default_excel_max_column_width can't be translated to integer. Check the value you entered while calling set_defaults() function."
@@ -175,7 +173,7 @@ class Environment:
         """
 
         try:
-            default = str(self.__class__.default_temp_dir_name)
+            default = str(self._get_class_variable_value("default_temp_dir_name"))
         except Exception:
             raise Exception(
                 "Environment.__class__.default_temp_dir_name can't be stringified. Check the value you entered while calling set_defaults() function."
@@ -191,7 +189,7 @@ class Environment:
         """
 
         try:
-            default = str(self.__class__.default_nextcloud_url)
+            default = str(self._get_class_variable_value("default_nextcloud_url"))
         except Exception:
             raise Exception(
                 "Environment.__class__.default_nextcloud_url can't be stringified. Check the value you entered while calling set_defaults() function."
@@ -279,7 +277,7 @@ class Environment:
         """
         
         try:
-            default = str(self.__class__.default_nextcloud_upload_dir)
+            default = str(self._get_class_variable_value("default_nextcloud_upload_dir"))
         except Exception:
             raise Exception(
                 "Environment.__class__.default_nextcloud_upload_dir can't be stringified. Check the value you entered while calling set_defaults() function."
@@ -301,7 +299,7 @@ class Environment:
         """
 
         try:
-            default = str(self.__class__.default_timezone)
+            default = str(self._get_class_variable_value("default_timezone"))
         except Exception:
             raise Exception(
                 "Environment.__class__.default_timezone can't be stringified. Check the value you entered while calling set_defaults() function."
@@ -317,7 +315,7 @@ class Environment:
         """
 
         try:
-            default = int(self.__class__.default_interval_minutes)
+            default = int(self._get_class_variable_value("default_interval_minutes"))
         except Exception:
             raise Exception(
                 "Environment.__class__.default_interval_minutes can't be translated to integer. Check the value you entered while calling set_defaults() function."
@@ -350,7 +348,7 @@ class Environment:
         """
 
         try:
-            default = int(self.__class__.default_check_interval_seconds)
+            default = int(self._get_class_variable_value("default_check_interval_seconds"))
         except Exception:
             raise Exception(
                 "Environment.__class__.default_check_interval_seconds can't be translated to integer. Check the value you entered while calling set_defaults() function."
@@ -383,7 +381,7 @@ class Environment:
         """
 
         try:
-            default = str(self.__class__.default_run_once)
+            default = str(self._get_class_variable_value("default_run_once"))
         except Exception:
             raise Exception(
                 "Environment.__class__.default_run_once can't be stringified. Check the value you entered while calling set_defaults() function."
@@ -407,7 +405,7 @@ class Environment:
         """
 
         try:
-            default = str(self.__class__.default_logging_level)
+            default = str(self._get_class_variable_value("default_logging_level"))
         except Exception:
             raise Exception(
                 "Environment.__class__.default_logging_level can't be stringified. Check the value you entered while calling set_defaults() function."
