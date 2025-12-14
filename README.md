@@ -6,7 +6,7 @@
 
 <br>
 
-This tool retrieves registration data for a specific event from Pretix, converts it into desired Excel formats and uploads it to Nextcloud. This project was developed for the KV Stuttgart of the SWD-EC and is therefore not universally applicable.
+This tool retrieves registration data for a specific event from Pretix, converts it to the desired Excel format and uploads it to Nextcloud. This project was developed for the SWD-EC, so the Docker images are not universally applicable. However, the Python code can be used as a reference implementation for similar use cases.
 
 <br>
 
