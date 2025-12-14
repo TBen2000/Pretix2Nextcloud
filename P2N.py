@@ -66,19 +66,13 @@ class Environment:
         try:
             default = str(self._get_class_variable_value("default_pretix_url"))
         except Exception:
-            raise Exception(
-                "Environment.__class__.default_pretix_url can't be stringified. Check the value you entered while calling set_defaults() function."
-            )
+            raise Exception("Environment.__class__.default_pretix_url can't be stringified. Check the value you entered while calling set_defaults() function.")
 
         pretix_url = self._get_env(name="PRETIX_URL", default=default)
 
         if pretix_url.startswith("http://"):
-            logging.warning(
-                "Environment variable 'PRETIX_URL' starts with 'http://'. It is strongly recommended to use https because sensitive data is transmitted over the internet."
-            )
-        elif not pretix_url.startswith(
-            "https://"
-        ):  # if pretix_url doesn't start with "http://" or "https://"
+            logging.warning("Environment variable 'PRETIX_URL' starts with 'http://'. It is strongly recommended to use https because sensitive data is transmitted over the internet.")
+        elif not pretix_url.startswith("https://"):  # if pretix_url doesn't start with "http://" or "https://"
             pretix_url = f"https://{pretix_url}"
 
         return pretix_url
@@ -93,17 +87,13 @@ class Environment:
             api_token = self._get_env(name="PRETIX_API_TOKEN")
             return api_token
         except ValueError:
-            logging.debug(
-                "Environment variable 'PRETIX_API_TOKEN' is not set. Trying for Docker secret."
-            )
+            logging.debug("Environment variable 'PRETIX_API_TOKEN' is not set. Trying for Docker secret.")
 
         # get secret instead of env variable:
         try:
             secret_name = self._get_env(name="PRETIX_API_TOKEN_SECRET_NAME")
         except ValueError:
-            raise ValueError(
-                "Environment variable 'PRETIX_API_TOKEN' (or alternatively 'PRETIX_API_TOKEN_SECRET_NAME' for using docker secrets) is not set."
-            )
+            raise ValueError("Environment variable 'PRETIX_API_TOKEN' (or alternatively 'PRETIX_API_TOKEN_SECRET_NAME' for using docker secrets) is not set.")
 
         secret = self._get_secret(secret_name)
         if not secret:
@@ -128,9 +118,7 @@ class Environment:
         try:
             default = str(self._get_class_variable_value("default_pretix_organizer_slug"))
         except Exception:
-            raise Exception(
-                "Environment.__class__.default_pretix_organizer_slug can't be stringified. Check the value you entered while calling set_defaults() function."
-            )
+            raise Exception("Environment.__class__.default_pretix_organizer_slug can't be stringified. Check the value you entered while calling set_defaults() function.")
 
         orgnizer_slug = self._get_env(name="PRETIX_ORGANIZER_SLUG", default=default)
 
@@ -144,25 +132,19 @@ class Environment:
         try:
             default = int(self._get_class_variable_value("default_excel_max_column_width"))
         except Exception:
-            raise Exception(
-                "Environment.__class__.default_excel_max_column_width can't be translated to integer. Check the value you entered while calling set_defaults() function."
-            )
+            raise Exception("Environment.__class__.default_excel_max_column_width can't be translated to integer. Check the value you entered while calling set_defaults() function.")
 
         str_width = self._get_env(name="EXCEL_MAX_COLUMN_WIDTH", default=str(default))
 
         try:
             width = int(str_width)
         except ValueError:
-            logging.error(
-                f"Environment variable 'EXCEL_MAX_COLUMN_WIDTH' must be an integer. Using default value '{default}'."
-            )
+            logging.error(f"Environment variable 'EXCEL_MAX_COLUMN_WIDTH' must be an integer. Using default value '{default}'.")
             return default
 
         min_value = 5
         if width < min_value:
-            logging.error(
-                f"Environment variable 'EXCEL_MAX_COLUMN_WIDTH' must be at least {min_value}. Using default value '{default}'."
-            )
+            logging.error(f"Environment variable 'EXCEL_MAX_COLUMN_WIDTH' must be at least {min_value}. Using default value '{default}'.")
             return default
 
         return width
@@ -175,9 +157,7 @@ class Environment:
         try:
             default = str(self._get_class_variable_value("default_temp_dir_name"))
         except Exception:
-            raise Exception(
-                "Environment.__class__.default_temp_dir_name can't be stringified. Check the value you entered while calling set_defaults() function."
-            )
+            raise Exception("Environment.__class__.default_temp_dir_name can't be stringified. Check the value you entered while calling set_defaults() function.")
 
         temp_dir_name = self._get_env(name="TEMP_DIR_NAME", default=default)
 
@@ -191,21 +171,13 @@ class Environment:
         try:
             default = str(self._get_class_variable_value("default_nextcloud_url"))
         except Exception:
-            raise Exception(
-                "Environment.__class__.default_nextcloud_url can't be stringified. Check the value you entered while calling set_defaults() function."
-            )
+            raise Exception("Environment.__class__.default_nextcloud_url can't be stringified. Check the value you entered while calling set_defaults() function.")
 
-        pretix_url = self._get_env(
-            name="NEXTCLOUD_URL", default=default
-        )
+        pretix_url = self._get_env(name="NEXTCLOUD_URL", default=default)
 
         if pretix_url.startswith("http://"):
-            logging.warning(
-                "Environment variable 'NEXTCLOUD_URL' starts with 'http://'. It is strongly recommended to use https because sensitive data is transmitted over the internet."
-            )
-        elif not pretix_url.startswith(
-            "https://"
-        ):  # if pretix_url doesn't start with "http://" or "https://"
+            logging.warning("Environment variable 'NEXTCLOUD_URL' starts with 'http://'. It is strongly recommended to use https because sensitive data is transmitted over the internet.")
+        elif not pretix_url.startswith("https://"):  # if pretix_url doesn't start with "http://" or "https://"
             pretix_url = f"https://{pretix_url}"
 
         return pretix_url
@@ -220,24 +192,17 @@ class Environment:
             username = self._get_env(name="NEXTCLOUD_USERNAME")
             return username
         except ValueError:
-            logging.debug(
-                "Environment variable 'NEXTCLOUD_USERNAME' is not set. Trying for Docker secret."
-            )
+            logging.debug("Environment variable 'NEXTCLOUD_USERNAME' is not set. Trying for Docker secret.")
 
         # get secret instead of env variable:
-
         try:
             secret_name = self._get_env(name="NEXTCLOUD_USERNAME_SECRET_NAME")
         except ValueError:
-            raise ValueError(
-                "Environment variable 'NEXTCLOUD_USERNAME' (or alternatively 'NEXTCLOUD_USERNAME_SECRET_NAME' for using docker secrets) is not set."
-            )
+            raise ValueError("Environment variable 'NEXTCLOUD_USERNAME' (or alternatively 'NEXTCLOUD_USERNAME_SECRET_NAME' for using docker secrets) is not set.")
 
         secret = self._get_secret(secret_name)
         if not secret:
-            raise ValueError(
-                f"Secret {secret_name} for the Nextcloud username is empty."
-            )
+            raise ValueError(f"Secret {secret_name} for the Nextcloud username is empty.")
 
         return secret
 
@@ -251,23 +216,17 @@ class Environment:
             password = self._get_env(name="NEXTCLOUD_PASSWORD", strip=False)
             return password
         except ValueError:
-            logging.debug(
-                "Environment variable 'NEXTCLOUD_PASSWORD' is not set. Trying for Docker secret."
-            )
+            logging.debug("Environment variable 'NEXTCLOUD_PASSWORD' is not set. Trying for Docker secret.")
 
         # get secret instead of env variable:
         try:
             secret_name = self._get_env(name="NEXTCLOUD_PASSWORD_SECRET_NAME")
         except ValueError:
-            raise ValueError(
-                "Environment variable 'NEXTCLOUD_PASSWORD' (or alternatively 'NEXTCLOUD_PASSWORD_SECRET_NAME' for using docker secrets) is not set."
-            )
+            raise ValueError("Environment variable 'NEXTCLOUD_PASSWORD' (or alternatively 'NEXTCLOUD_PASSWORD_SECRET_NAME' for using docker secrets) is not set.")
 
         secret = self._get_secret(secret_name)
         if not secret:
-            raise ValueError(
-                f"Secret {secret_name} for the Nextcloud password is empty."
-            )
+            raise ValueError(f"Secret {secret_name} for the Nextcloud password is empty.")
 
         return secret
 
@@ -279,15 +238,9 @@ class Environment:
         try:
             default = str(self._get_class_variable_value("default_nextcloud_upload_dir"))
         except Exception:
-            raise Exception(
-                "Environment.__class__.default_nextcloud_upload_dir can't be stringified. Check the value you entered while calling set_defaults() function."
-            )
+            raise Exception("Environment.__class__.default_nextcloud_upload_dir can't be stringified. Check the value you entered while calling set_defaults() function.")
 
-        upload_dir = self._get_env(
-            name="NEXTCLOUD_UPLOAD_DIR",
-            default=default,
-            info_log=True,
-        )
+        upload_dir = self._get_env(name="NEXTCLOUD_UPLOAD_DIR", default=default, info_log=True)
 
         upload_dir = upload_dir.strip("/\\")
 
@@ -301,9 +254,7 @@ class Environment:
         try:
             default = str(self._get_class_variable_value("default_timezone"))
         except Exception:
-            raise Exception(
-                "Environment.__class__.default_timezone can't be stringified. Check the value you entered while calling set_defaults() function."
-            )
+            raise Exception("Environment.__class__.default_timezone can't be stringified. Check the value you entered while calling set_defaults() function.")
             
         timezone = self._get_env(name="TZ", default=default)
 
@@ -317,27 +268,19 @@ class Environment:
         try:
             default = int(self._get_class_variable_value("default_interval_minutes"))
         except Exception:
-            raise Exception(
-                "Environment.__class__.default_interval_minutes can't be translated to integer. Check the value you entered while calling set_defaults() function."
-            )
+            raise Exception("Environment.__class__.default_interval_minutes can't be translated to integer. Check the value you entered while calling set_defaults() function.")
             
-        str_minutes = self._get_env(
-            name="INTERVAL_MINUTES", default=str(default)
-        )
+        str_minutes = self._get_env(name="INTERVAL_MINUTES", default=str(default))
 
         try:
             minutes = int(str_minutes)
         except ValueError:
-            logging.error(
-                f"Environment variable 'INTERVAL_MINUTES' must be an integer. Using default value '{default}'."
-            )
+            logging.error(f"Environment variable 'INTERVAL_MINUTES' must be an integer. Using default value '{default}'.")
             return default
 
         min_value = 1
         if minutes < min_value:
-            logging.error(
-                f"Environment variable 'INTERVAL_MINUTES' must be at least {min_value}. Using default value '{default}'."
-            )
+            logging.error(f"Environment variable 'INTERVAL_MINUTES' must be at least {min_value}. Using default value '{default}'.")
             return default
 
         return minutes
@@ -350,27 +293,19 @@ class Environment:
         try:
             default = int(self._get_class_variable_value("default_check_interval_seconds"))
         except Exception:
-            raise Exception(
-                "Environment.__class__.default_check_interval_seconds can't be translated to integer. Check the value you entered while calling set_defaults() function."
-            )
+            raise Exception("Environment.__class__.default_check_interval_seconds can't be translated to integer. Check the value you entered while calling set_defaults() function.")
         
-        str_seconds = self._get_env(
-            name="CHECK_INTERVAL_SECONDS", default=str(default)
-        )
+        str_seconds = self._get_env(name="CHECK_INTERVAL_SECONDS", default=str(default))
 
         try:
             seconds = int(str_seconds)
         except ValueError:
-            logging.error(
-                f"Environment variable 'CHECK_INTERVAL_SECONDS' must be an integer. Using default value '{default}'."
-            )
+            logging.error(f"Environment variable 'CHECK_INTERVAL_SECONDS' must be an integer. Using default value '{default}'.")
             return default
 
         min_value = 1
         if seconds < min_value:
-            logging.error(
-                f"Environment variable 'CHECK_INTERVAL_SECONDS' must be at least {min_value}. Using default value '{default}'."
-            )
+            logging.error(f"Environment variable 'CHECK_INTERVAL_SECONDS' must be at least {min_value}. Using default value '{default}'.")
             return default
 
         return seconds
@@ -383,9 +318,7 @@ class Environment:
         try:
             default = str(self._get_class_variable_value("default_run_once"))
         except Exception:
-            raise Exception(
-                "Environment.__class__.default_run_once can't be stringified. Check the value you entered while calling set_defaults() function."
-            )
+            raise Exception("Environment.__class__.default_run_once can't be stringified. Check the value you entered while calling set_defaults() function.")
             
         run_once = self._get_env(name="RUN_ONCE", default=default)
         run_once_lower = run_once.lower()
@@ -395,9 +328,7 @@ class Environment:
         if run_once_lower == "false":
             return False
 
-        raise ValueError(
-            f"Environment variable 'RUN_ONCE' must be either 'true' or 'false'. Current value: '{run_once}'"
-        )
+        raise ValueError(f"Environment variable 'RUN_ONCE' must be either 'true' or 'false'. Current value: '{run_once}'")
 
     def get_logging_level(self) -> int:
         """
@@ -407,13 +338,9 @@ class Environment:
         try:
             default = str(self._get_class_variable_value("default_logging_level"))
         except Exception:
-            raise Exception(
-                "Environment.__class__.default_logging_level can't be stringified. Check the value you entered while calling set_defaults() function."
-            )
+            raise Exception("Environment.__class__.default_logging_level can't be stringified. Check the value you entered while calling set_defaults() function.")
             
-        logging_level = self._get_env(
-            name="LOGGING_LEVEL", default=default
-        )
+        logging_level = self._get_env(name="LOGGING_LEVEL", default=default)
         logging_level = logging_level.lower()
 
         levels = {
@@ -426,9 +353,7 @@ class Environment:
         if logging_level in levels:
             return levels[logging_level]
 
-        raise ValueError(
-            f"Environment variable 'LOGGING_LEVEL' must be either 'debug', 'info', 'warning', or 'error'. Current value: '{logging_level}'."
-        )
+        raise ValueError(f"Environment variable 'LOGGING_LEVEL' must be either 'debug', 'info', 'warning', or 'error'. Current value: '{logging_level}'.")
         
     def get_docker_image_version(self) -> str:
         """
@@ -442,9 +367,7 @@ class Environment:
 
         return docker_version
 
-    def _get_env(
-        self, name: str, default: str = "", strip: bool = True, info_log: bool = False
-    ) -> str:
+    def _get_env(self, name: str, default: str = "", strip: bool = True, info_log: bool = False) -> str:
         """
         Get environment variable with optional default value.
 
@@ -509,7 +432,7 @@ class Environment:
                     b64_content = stripped_data[len(prefix) :]
                     data = base64.b64decode(b64_content).decode("utf-8").strip("\n")
                 except Exception as e:
-                    logging.error(f"Error decoding base64: {e}")
+                    logging.error(f"Error while decoding base64: {e}")
                     data = ""
 
         return data
@@ -527,9 +450,7 @@ class PretixAPI:
         pretix_event = env.get_pretix_event_slug()
         pretix_api_token = env.get_pretix_api_token()
 
-        self.pretix_api_url = os.path.join(
-            pretix_url, "api/v1/organizers", pretix_organizer, "events", pretix_event
-        )
+        self.pretix_api_url = os.path.join(pretix_url, "api/v1/organizers", pretix_organizer, "events", pretix_event)
 
         self.session = requests.Session()
         self.session.headers.update({"Authorization": f"Token {pretix_api_token}"})
@@ -560,9 +481,7 @@ class PretixAPI:
             data = r.json()
 
             for q in data["results"]:
-                question_text = q["question"].get("de") or next(
-                    iter(q["question"].values())
-                )
+                question_text = q["question"].get("de") or next(iter(q["question"].values()))
                 questions[q["id"]] = question_text
 
             url = data["next"]  # Pagination
@@ -581,9 +500,7 @@ class PretixAPI:
         """
 
         if not question_str.strip():
-            logging.error(
-                "Empty question text provided to get_question_choices_by_text"
-            )
+            logging.error("Empty question text provided to get_question_choices_by_text()")
             return []
 
         # build a fresh mapping of id -> text (ensures up-to-date data)
@@ -675,11 +592,10 @@ class PretixAPI:
 
             except Exception as e:
                 logging.error(f"Error fetching choices for question id {qid}: {e}")
+                return []
 
         if len(matching_qids) > 1:
-            logging.info(
-                f"Multiple question IDs {matching_qids} map to the same question text '{question_str}'. Merged unique choices ({len(all_choices)} unique)."
-            )
+            logging.info(f"Multiple question IDs {matching_qids} map to the same question text '{question_str}'. Merged unique choices ({len(all_choices)} unique).")
 
         return sorted(all_choices)
 
@@ -775,9 +691,7 @@ class PretixAPI:
                 # resolve item id
                 item_id = position.get("item")
                 if isinstance(item_id, dict):
-                    item_name = item_id["name"].get("de") or next(
-                        iter(item_id["name"].values())
-                    )
+                    item_name = item_id["name"].get("de") or next(iter(item_id["name"].values()))
                 else:
                     item_name = item_map.get(item_id, f"Item {item_id}")
 
@@ -808,9 +722,7 @@ class PretixAPI:
 
                     # Generate unique column name for this question text
                     if qtext not in question_text_mapping:
-                        question_text_mapping[qtext] = self._get_unique_column_name(
-                            qtext, list(question_text_mapping.values())
-                        )
+                        question_text_mapping[qtext] = self._get_unique_column_name(qtext, list(question_text_mapping.values()))
 
                     unique_col_name = question_text_mapping[qtext]
                     questions[unique_col_name] = answer_text
@@ -825,9 +737,7 @@ class PretixAPI:
         for qid, qtext in question_map.items():
             # Generate unique column name for this question text
             if qtext not in question_text_mapping:
-                unique_col_name = self._get_unique_column_name(
-                    qtext, list(question_text_mapping.values()) + list(df.columns)
-                )
+                unique_col_name = self._get_unique_column_name(qtext, list(question_text_mapping.values()) + list(df.columns))
                 question_text_mapping[qtext] = unique_col_name
             else:
                 unique_col_name = question_text_mapping[qtext]
@@ -895,16 +805,12 @@ class Excel:
             worksheet = writer.sheets[sheet_name]
 
             # adjust column widths including index column and header
-            for idx, col in enumerate(
-                df.columns, start=2
-            ):  # start=2 because index is in column 1
+            for idx, col in enumerate(df.columns, start=2):  # start=2 because index is in column 1
                 max_length = max(
                     len(str(col)),  # header length
                     df[col].astype(str).map(len).max(),  # data length
                 )
-                length = min(
-                    max_length + 2, self.max_column_width
-                )  # cap the width via constant
+                length = min(max_length + 2, self.max_column_width)  # cap the width via constant
 
                 worksheet.column_dimensions[
                     worksheet.cell(row=1, column=idx).column_letter
@@ -933,9 +839,7 @@ class Excel:
             return path
 
         elif not path.endswith(".xlsx"):
-            logging.warning(
-                f"Cannot add filter to '{path}': File is not an excel file."
-            )
+            logging.warning(f"Cannot add filter to '{path}': File is not an excel file.")
             return path
 
         wb = load_workbook(path)
@@ -995,9 +899,7 @@ class Nextcloud:
         self.upload_dir = env.get_nextcloud_upload_dir()
         self.time_zone = env.get_timezone()
 
-        self.base_url = os.path.join(
-            nextcloud_url, "remote.php/dav/files", username
-        )
+        self.base_url = os.path.join(nextcloud_url, "remote.php/dav/files", username)
         
         self.session = requests.Session()
         self.session.auth = HTTPBasicAuth(username, password)
@@ -1006,7 +908,7 @@ class Nextcloud:
             total=5,
             backoff_factor=0.5,
             status_forcelist=[500, 502, 503, 504],
-            allowed_methods=["MKCOL", "PUT", "GET", "HEAD", "DELETE"]
+            allowed_methods=["MKCOL", "PUT", "GET", "HEAD", "DELETE"],
         )
 
         adapter = HTTPAdapter(max_retries=retries)
@@ -1128,9 +1030,7 @@ class Nextcloud:
             if r.status_code in (200, 201, 204):
                 logging.info(f"File '{os.path.join(subdir, filename)}' uploaded successfully.")
             else:
-                logging.error(
-                    f"Error uploading file '{filename}': {r.status_code} - {r.text}"
-                )
+                logging.error(f"Error uploading file '{filename}': {r.status_code} - {r.text}")
 
         except Exception as e:
             logging.error(f"Network error uploading file '{filename}': {e}")
@@ -1237,9 +1137,7 @@ class Main:
         # keep the scheduler running
         while True:
             schedule.run_pending()
-            time.sleep(
-                env.get_check_interval_seconds()
-            )  # check periodically if a task needs to run
+            time.sleep(env.get_check_interval_seconds())  # check periodically if a task needs to run
             
     def upload_last_updated(self):
         try:
