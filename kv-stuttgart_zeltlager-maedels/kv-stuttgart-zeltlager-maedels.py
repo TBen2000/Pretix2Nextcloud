@@ -19,7 +19,7 @@ except ImportError:
 
 Environment().set_defaults(
     default_pretix_url="https://tickets.swdec.de",
-    default_prtix_organizer_slug="kv-stuttgart",
+    default_pretix_organizer_slug="kv-stuttgart",
     default_excel_max_column_width=30,
     default_temp_dir_name="p2n_zeltlager-maedels",
     default_nextcloud_url="https://jcloud.swdec.de",

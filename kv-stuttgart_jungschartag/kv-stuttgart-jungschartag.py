@@ -16,6 +16,7 @@ try:
 except ImportError:
     raise ImportError("Could not import P2N.py from current or parent directory.")
 
+
 Environment().set_defaults(
     default_pretix_url="https://tickets.swdec.de",
     default_pretix_organizer_slug="kv-stuttgart",
