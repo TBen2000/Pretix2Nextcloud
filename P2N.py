@@ -413,8 +413,7 @@ class Environment:
                 secret = f.read().strip("\n")
 
         except Exception as e:
-            logging.error(f"Error reading secret from {path}: {e}")
-            secret = ""
+            raise Exception(f"Error reading secret from {path}: {e}")
 
         secret = self._decode_if_base64(secret, prefix="BASE64:")
 
@@ -433,8 +432,7 @@ class Environment:
                     b64_content = stripped_data[len(prefix) :]
                     data = base64.b64decode(b64_content).decode("utf-8").strip("\n")
                 except Exception as e:
-                    logging.error(f"Error while decoding base64: {e}")
-                    data = ""
+                    raise Exception(f"Error while decoding base64: {e}")
 
         return data
 
@@ -501,8 +499,7 @@ class PretixAPI:
         """
 
         if not question_str.strip():
-            logging.error("Empty question text provided to get_question_choices_by_text()")
-            return []
+            raise Exception("Empty question text provided to get_question_choices_by_text()")
 
         # build a fresh mapping of id -> text (ensures up-to-date data)
         question_map = self._get_questions()
@@ -516,8 +513,7 @@ class PretixAPI:
         ]
 
         if not matching_qids:
-            logging.warning(f"No question IDs found for question text '{question_str}'")
-            return []
+            raise Exception(f"No question IDs found for question text '{question_str}'")
 
         all_choices = set()
 
@@ -592,8 +588,7 @@ class PretixAPI:
                         all_choices.add(text_val)
 
             except Exception as e:
-                logging.error(f"Error fetching choices for question id {qid}: {e}")
-                return []
+                raise Exception(f"Error fetching choices for question id {qid}: {e}")
 
         if len(matching_qids) > 1:
             logging.info(f"Multiple question IDs {matching_qids} map to the same question text '{question_str}'. Merged unique choices ({len(all_choices)} unique).")
@@ -1031,10 +1026,10 @@ class Nextcloud:
             if r.status_code in (200, 201, 204):
                 logging.info(f"File '{os.path.join(subdir, filename)}' uploaded successfully.")
             else:
-                logging.error(f"Error uploading file '{filename}': {r.status_code} - {r.text}")
+                raise Exception(f"Error uploading file '{filename}': {r.status_code} - {r.text}")
 
         except Exception as e:
-            logging.error(f"Network error uploading file '{filename}': {e}")
+            raise Exception(f"Network error uploading file '{filename}': {e}")
 
     def upload_excel(self, source_file: str, subdir: str = "") -> None:
         """
@@ -1051,37 +1046,47 @@ class Nextcloud:
                 data = f.read()
             self.upload_file(filename, data, subdir)
         except Exception as e:
-            logging.error(f"Error uploading Excel file '{source_file}': {e}")
+            raise Exception(f"Error while uploading Excel file '{source_file}': {e}")
 
-    def upload_last_updated(self, filename = "Last_Updated.txt", subdir: str = "") -> None:
+    def upload_last_updated(self, filename = "Last_Updated.txt", subdir: str = "", error_message: str = "") -> None:
         """
         Upload a timestamp file indicating the last update time.
         """
-        
-        filename = self._sanitize_filename(filename)
-        
-        if not filename.lower().endswith(".txt"):
-            filename += ".txt"
+        try:
+            filename = self._sanitize_filename(filename)
+            
+            if not filename.lower().endswith(".txt"):
+                filename += ".txt"
 
-        tz = pytz.timezone(self.time_zone)
-        data = "Last updated:\n" + datetime.now(tz=tz).strftime("%d.%m.%Y %H:%M")
+            tz = pytz.timezone(self.time_zone)
+            data = "Last updated:\n" + datetime.now(tz=tz).strftime("%d.%m.%Y %H:%M")
+            
+            if error_message:
+                data += f"\n\nERROR occurred:\n{error_message}"
 
-        self.upload_file(filename, data.encode("utf-8"), subdir)
+            self.upload_file(filename, data.encode("utf-8"), subdir)
+        
+        except Exception as e:
+            raise Exception(f"Error while uploading last updated timestamp: {e}")
         
     def upload_docker_image_version(self, filename: str = "Docker_Image_Version.txt", subdir: str = "") -> None:
         """
         Upload a Docker image version file indicating the Docker image currently used.
         """
         
-        filename = self._sanitize_filename(filename)
+        try:
+            filename = self._sanitize_filename(filename)
+            
+            if not filename.lower().endswith(".txt"):
+                filename += ".txt"
+
+            docker_image = Environment().get_docker_image_version()
+            data = "Docker Image Base Version:\n" + docker_image
+
+            self.upload_file(filename, data.encode("utf-8"), subdir)
         
-        if not filename.lower().endswith(".txt"):
-            filename += ".txt"
-
-        docker_image = Environment().get_docker_image_version()
-        data = "Docker Image Base Version:\n" + docker_image
-
-        self.upload_file(filename, data.encode("utf-8"), subdir)
+        except Exception as e:
+            raise Exception(f"Error while uploading Docker version: {e}")
         
 
 class Main:
@@ -1130,6 +1135,9 @@ class Main:
         self.excel.delete_excel(filepath)
 
     def schedule_loop(self):
+        """
+        Schedule main function to run at configured intervals.
+        """
         env = Environment()
         
         # schedule main to run at configured intervals
@@ -1138,14 +1146,7 @@ class Main:
         # keep the scheduler running
         while True:
             schedule.run_pending()
-            time.sleep(env.get_check_interval_seconds())  # check periodically if a task needs to run
-            
-    def upload_last_updated(self):
-        try:
-            self.nc.upload_last_updated()
-        except Exception as e:
-            raise Exception(f"An error occurred while uploading last updated timestamp: {e}")
-        
+            time.sleep(env.get_check_interval_seconds())  # check periodically if task needs to run        
 
     def main_wrapper(self):
         """
@@ -1163,14 +1164,16 @@ class Main:
         except Exception as e:
             if str(e) == "No changes in data since last fetch.":
                 logging.info("No changes in data detected since last fetch. Skipping upload process.")
-                try:
-                    self.upload_last_updated()
-                except Exception as e:
-                    logging.error(e)
+                e = ""
 
             else:
-                logging.error(f"An error occurred during execution: {e}")
+                logging.error(f"Error during execution: {e}")
                 self.success_on_last_run = False
+                
+            try:
+                self.nc.upload_last_updated(error_message=e)
+            except Exception as upload_error:
+                logging.error(upload_error)
 
     def main(self):
         """
