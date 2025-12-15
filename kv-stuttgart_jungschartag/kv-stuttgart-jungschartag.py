@@ -213,7 +213,7 @@ class CustomMain(Main):
         self.upload(dataframe.raw_df, "Raw_Data", add_filters=True)
 
         # generate and upload excel file for all attendees
-        self.upload(dataframe.sorted_df, "Alle.xlsx", add_filters=True)
+        self.upload(dataframe.sorted_df, "Alle", add_filters=True)
 
         # generate and upload excel file for town-wise attendees
         for town in dataframe.town_dfs:
