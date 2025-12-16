@@ -3,6 +3,8 @@
 FROM python:3.12-slim
 
 LABEL org.opencontainers.image.source=https://github.com/TBen2000/Pretix2Nextcloud
+LABEL org.opencontainers.image.description="P2N - KV Stuttgart Zeltlager Jungs"
+LABEL org.opencontainers.image.licenses=MIT
 
 WORKDIR /app
 
