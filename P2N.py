@@ -1120,14 +1120,14 @@ class Main:
         # schedule loop for continuous execution
         self.schedule_loop()
 
-    def upload(self, df: pd.DataFrame, filename: str, subdir: str = "", add_filters: bool = False):
+    def upload(self, df: pd.DataFrame, filename: str, subdir: str = "", filterable: bool = False):
         """
         Generate excel file from dataframe, upload excel file and delete it afterwards. Can also add filters to excel file.
         """
         
         filepath = self.excel.save_to_excel(df, filename)
 
-        if add_filters is True:
+        if filterable is True:
             self.excel.add_filters(filepath)
 
         self.nc.upload_excel(filepath, subdir)
