@@ -8,6 +8,8 @@
 
 This tool retrieves registration data for a specific event from Pretix, converts it to the desired Excel format and uploads it to Nextcloud. This project was developed for the SWD-EC, so the Docker images are not universally applicable. However, the Python code can be used as a reference implementation for similar use cases.
 
+For the file uploads, a Nextcloud instance is not required. Any storage server that supports WebDAV can be used.
+
 <br>
 
 ## Setting up Pretix2Nextcloud via Docker

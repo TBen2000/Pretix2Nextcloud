@@ -1013,7 +1013,7 @@ class Nextcloud:
         upload_dir = os.path.join(self.upload_dir, subdir)
         
         if "../" in upload_dir or "/.." in upload_dir:  # if directory tries to use parent directories and tries to upload to a destination outside of the given upload directory
-            raise Exception(f"DO NOT USE '/../' segments in your directory path! This may alter files outside your upload directory! PROCEED WITH CAUTION ON YOUR OWN RISK!\nURL: {upload_dir}")
+            raise Exception(f"DO NOT USE '/../' segments in your directory path! This may alter files outside your upload directory!\nURL: {upload_dir}")
         
         self.create_dir(subdir)            
         
