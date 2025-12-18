@@ -22,7 +22,7 @@ Install Docker from https://docs.docker.com/get-docker/
 ### Step 2:
 Create a new file called `.env` and store your environment variables there like this:
 
-    PRETIX_EVENT_SLUG=your-event-slug
+    PRETIX_EVENT_SLUG=pretix-event-slug
     PRETIX_API_TOKEN=zkv2p7eja7j8axbe77d3ye85wgyruofcmuphf7gjngbdgepttsejmmpwrgyezdbs
     NEXTCLOUD_UPLOAD_DIR=/path/in/nextcloud/
     NEXTCLOUD_USERNAME=nextcloud-user
