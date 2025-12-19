@@ -35,9 +35,9 @@ jobs:
             swdec-kvstuttgart-teencamp:
               - 'swdec_kv-stuttgart_teencamp/**'
             swdec-kvstuttgart-jungslager:
-              - 'swdec_kv-stuttgart_zeltlager-jungs/**'
+              - 'swdec_kv-stuttgart_jungslager/**'
             swdec-kvstuttgart-maedelslager:
-              - 'swdec_kv-stuttgart_zeltlager-maedels/**'
+              - 'swdec_kv-stuttgart_maedelslager/**'
 
       - name: Generate Matrix
         id: set-matrix
@@ -50,10 +50,10 @@ jobs:
 
           # Image configuration
           all_images = [
-            {"id": "swdec-kvstuttgart-jungschartag", "folder": "swdec_kv-stuttgart_jungschartag",      "name": "swdec-kvstuttgart-jungschartag"},
-            {"id": "swdec-kvstuttgart-teencamp",     "folder": "swdec_kv-stuttgart_teencamp",          "name": "swdec-kvstuttgart-teencamp"    },
-            {"id": "swdec-kvstuttgart-jungslager",   "folder": "swdec_kv-stuttgart_zeltlager-jungs",   "name": "swdec-kvstuttgart-jungslager"  },
-            {"id": "swdec-kvstuttgart-maedelslager", "folder": "swdec_kv-stuttgart_zeltlager-maedels", "name": "swdec-kvstuttgart-maedelslager"},
+            {"id": "swdec-kvstuttgart-jungschartag", "folder": "swdec_kv-stuttgart_jungschartag", "name": "swdec-kvstuttgart-jungschartag"},
+            {"id": "swdec-kvstuttgart-teencamp",     "folder": "swdec_kv-stuttgart_teencamp",     "name": "swdec-kvstuttgart-teencamp"    },
+            {"id": "swdec-kvstuttgart-jungslager",   "folder": "swdec_kv-stuttgart_jungslager",   "name": "swdec-kvstuttgart-jungslager"  },
+            {"id": "swdec-kvstuttgart-maedelslager", "folder": "swdec_kv-stuttgart_maedelslager", "name": "swdec-kvstuttgart-maedelslager"},
           ]
 
           # Safely load data from environment variable. If the paths-filter step was skipped (e.g. manual dispatch), 
