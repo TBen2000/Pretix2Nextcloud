@@ -3,7 +3,7 @@
 FROM python:3.12-slim
 
 LABEL org.opencontainers.image.source=https://github.com/TBen2000/Pretix2Nextcloud
-LABEL org.opencontainers.image.description="P2N  ||  SWD-EC - KV Stuttgart - Jungschartag"
+LABEL org.opencontainers.image.description="Pretix2Nextcloud || SWD-EC - KV Stuttgart - Jungschartag"
 LABEL org.opencontainers.image.licenses=MIT
 
 WORKDIR /app
