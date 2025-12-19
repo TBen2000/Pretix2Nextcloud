@@ -50,10 +50,10 @@ jobs:
 
           # Image configuration
           all_images = [
-            {"id": "swdec-kvstuttgart-jungschartag", "folder": "swdec_kv-stuttgart_jungschartag", "name": "swdec-kvstuttgart-jungschartag"},
-            {"id": "swdec-kvstuttgart-teencamp",     "folder": "swdec_kv-stuttgart_teencamp",     "name": "swdec-kvstuttgart-teencamp"    },
-            {"id": "swdec-kvstuttgart-jungslager",   "folder": "swdec_kv-stuttgart_jungslager",   "name": "swdec-kvstuttgart-jungslager"  },
-            {"id": "swdec-kvstuttgart-maedelslager", "folder": "swdec_kv-stuttgart_maedelslager", "name": "swdec-kvstuttgart-maedelslager"},
+            { "id": "swdec-kvstuttgart-jungschartag", "folder": "swdec_kv-stuttgart_jungschartag" },
+            { "id": "swdec-kvstuttgart-teencamp",     "folder": "swdec_kv-stuttgart_teencamp"     },
+            { "id": "swdec-kvstuttgart-jungslager",   "folder": "swdec_kv-stuttgart_jungslager"   },
+            { "id": "swdec-kvstuttgart-maedelslager", "folder": "swdec_kv-stuttgart_maedelslager" },
           ]
 
           # Safely load data from environment variable. If the paths-filter step was skipped (e.g. manual dispatch), 
@@ -133,9 +133,9 @@ jobs:
       # Generic build process (Variables are retrieved from the matrix)
       # ---------------------------------------------------------------
       
-      - name: Build base image -> ${{ matrix.name }}
+      - name: Build base image -> ${{ matrix.id }}
         run: |
-          IMAGE=ghcr.io/${{ github.repository_owner }}/p2n-${{ matrix.name }}
+          IMAGE=ghcr.io/${{ github.repository_owner }}/p2n-${{ matrix.id }}
           IMAGE=$(echo $IMAGE | tr '[:upper:]' '[:lower:]')
           
           DOCKERFILE=${{ matrix.folder }}/Dockerfile
@@ -146,10 +146,10 @@ jobs:
             -f $DOCKERFILE \
             --tag $IMAGE:base
 
-      - name: Push base image -> ${{ matrix.name }}
+      - name: Push base image -> ${{ matrix.id }}
         id: push_base
         run: |
-          IMAGE=ghcr.io/${{ github.repository_owner }}/p2n-${{ matrix.name }}
+          IMAGE=ghcr.io/${{ github.repository_owner }}/p2n-${{ matrix.id }}
           IMAGE=$(echo $IMAGE | tr '[:upper:]' '[:lower:]')
 
           docker push $IMAGE:base | tee output.txt
@@ -157,9 +157,9 @@ jobs:
           
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
 
-      - name: Build final image with digest -> ${{ matrix.name }}
+      - name: Build final image with digest -> ${{ matrix.id }}
         run: |
-          IMAGE=ghcr.io/${{ github.repository_owner }}/p2n-${{ matrix.name }}
+          IMAGE=ghcr.io/${{ github.repository_owner }}/p2n-${{ matrix.id }}
           IMAGE=$(echo $IMAGE | tr '[:upper:]' '[:lower:]')
           
           DIGEST="${{ steps.push_base.outputs.digest }}"
@@ -173,9 +173,9 @@ jobs:
             -f Dockerfile.inject \
             --tag $IMAGE:latest
 
-      - name: Push final image -> ${{ matrix.name }}
+      - name: Push final image -> ${{ matrix.id }}
         run: |
-          IMAGE=ghcr.io/${{ github.repository_owner }}/p2n-${{ matrix.name }}
+          IMAGE=ghcr.io/${{ github.repository_owner }}/p2n-${{ matrix.id }}
           IMAGE=$(echo $IMAGE | tr '[:upper:]' '[:lower:]')
           
           docker push $IMAGE:latest
