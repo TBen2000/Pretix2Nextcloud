@@ -30,14 +30,14 @@ jobs:
               - 'P2N.py'
               - 'requirements.txt'
               - '.github/workflows/publish-ghcr.yaml'
-            kv-stuttgart-jungschartag:
-              - 'kv-stuttgart_jungschartag/**'
-            kv-stuttgart-teencamp:
-              - 'kv-stuttgart_teencamp/**'
-            kv-stuttgart-zeltlager_jungs:
-              - 'kv-stuttgart_zeltlager-jungs/**'
-            kv-stuttgart-zeltlager_maedels:
-              - 'kv-stuttgart_zeltlager-maedels/**'
+            swdec-kvstuttgart-jungschartag:
+              - 'swdec_kv-stuttgart_jungschartag/**'
+            swdec-kvstuttgart-teencamp:
+              - 'swdec_kv-stuttgart_teencamp/**'
+            swdec-kvstuttgart-jungslager:
+              - 'swdec_kv-stuttgart_zeltlager-jungs/**'
+            swdec-kvstuttgart-maedelslager:
+              - 'swdec_kv-stuttgart_zeltlager-maedels/**'
 
       - name: Generate Matrix
         id: set-matrix
@@ -50,10 +50,10 @@ jobs:
 
           # Image configuration
           all_images = [
-            {"id": "kv-stuttgart-jungschartag",      "folder": "kv-stuttgart_jungschartag",      "name": "kv-stuttgart-jungschartag"},
-            {"id": "kv-stuttgart-teencamp",          "folder": "kv-stuttgart_teencamp",          "name": "kv-stuttgart-teencamp"},
-            {"id": "kv-stuttgart-zeltlager_jungs",   "folder": "kv-stuttgart_zeltlager-jungs",   "name": "kv-stuttgart-zeltlager-jungs"},
-            {"id": "kv-stuttgart-zeltlager_maedels", "folder": "kv-stuttgart_zeltlager-maedels", "name": "kv-stuttgart-zeltlager-maedels"}
+            {"id": "swdec-kvstuttgart-jungschartag", "folder": "swdec_kv-stuttgart_jungschartag",      "name": "swdec-kvstuttgart-jungschartag"},
+            {"id": "swdec-kvstuttgart-teencamp",     "folder": "swdec_kv-stuttgart_teencamp",          "name": "swdec-kvstuttgart-teencamp"    },
+            {"id": "swdec-kvstuttgart-jungslager",   "folder": "swdec_kv-stuttgart_zeltlager-jungs",   "name": "swdec-kvstuttgart-jungslager"  },
+            {"id": "swdec-kvstuttgart-maedelslager", "folder": "swdec_kv-stuttgart_zeltlager-maedels", "name": "swdec-kvstuttgart-maedelslager"},
           ]
 
           # Safely load data from environment variable. If the paths-filter step was skipped (e.g. manual dispatch), 
@@ -135,7 +135,7 @@ jobs:
       
       - name: Build base image -> ${{ matrix.name }}
         run: |
-          IMAGE=ghcr.io/${{ github.repository_owner }}/pretix2nextcloud-${{ matrix.name }}
+          IMAGE=ghcr.io/${{ github.repository_owner }}/p2n-${{ matrix.name }}
           IMAGE=$(echo $IMAGE | tr '[:upper:]' '[:lower:]')
           
           DOCKERFILE=${{ matrix.folder }}/Dockerfile
@@ -149,7 +149,7 @@ jobs:
       - name: Push base image -> ${{ matrix.name }}
         id: push_base
         run: |
-          IMAGE=ghcr.io/${{ github.repository_owner }}/pretix2nextcloud-${{ matrix.name }}
+          IMAGE=ghcr.io/${{ github.repository_owner }}/p2n-${{ matrix.name }}
           IMAGE=$(echo $IMAGE | tr '[:upper:]' '[:lower:]')
 
           docker push $IMAGE:base | tee output.txt
@@ -159,7 +159,7 @@ jobs:
 
       - name: Build final image with digest -> ${{ matrix.name }}
         run: |
-          IMAGE=ghcr.io/${{ github.repository_owner }}/pretix2nextcloud-${{ matrix.name }}
+          IMAGE=ghcr.io/${{ github.repository_owner }}/p2n-${{ matrix.name }}
           IMAGE=$(echo $IMAGE | tr '[:upper:]' '[:lower:]')
           
           DIGEST="${{ steps.push_base.outputs.digest }}"
@@ -175,7 +175,7 @@ jobs:
 
       - name: Push final image -> ${{ matrix.name }}
         run: |
-          IMAGE=ghcr.io/${{ github.repository_owner }}/pretix2nextcloud-${{ matrix.name }}
+          IMAGE=ghcr.io/${{ github.repository_owner }}/p2n-${{ matrix.name }}
           IMAGE=$(echo $IMAGE | tr '[:upper:]' '[:lower:]')
           
           docker push $IMAGE:latest

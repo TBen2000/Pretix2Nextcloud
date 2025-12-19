@@ -67,37 +67,37 @@ You can also add following optional environment variables if you need to customi
 ### Step 3:
 Run the desired Docker image with one of the following commands:
 
-#### For KV Stuttgart Jungschartag:
+#### For SWDEC - KV Stuttgart - Jungschartag:
 
     docker run -d \
-    --name p2n-kv-stuttgart-jungschartag \
+    --name p2n-swdec-kvstuttgart-jungschartag \
     --restart unless-stopped \
     --env-file .env \
-    ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-jungschartag:latest
+    ghcr.io/tben2000/p2n-swdec-kvstuttgart-jungschartag:latest
 
-#### For KV Stuttgart Teencamp:
+#### For SWDEC - KV Stuttgart - Teencamp:
 
     docker run -d \
-    --name p2n-kv-stuttgart-teencamp \
+    --name p2n-swdec-kvstuttgart-teencamp \
     --restart unless-stopped \
     --env-file .env \
-    ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-teencamp:latest
+    ghcr.io/tben2000/p2n-swdec-kvstuttgart-teencamp:latest
 
-#### For KV Stuttgart Zeltlager Jungs:
+#### For SWDEC - KV Stuttgart - Zeltlager Jungs:
 
     docker run -d \
-    --name p2n-kv-stuttgart-zeltlager-jungs \
+    --name p2n-swdec-kvstuttgart-jungslager \
     --restart unless-stopped \
     --env-file .env \
-    ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-zeltlager-jungs:latest
+    ghcr.io/tben2000/p2n-swdec-kvstuttgart-jungslager:latest
 
-#### For KV Stuttgart Zeltlager Mädels:
+#### For SWDEC - KV Stuttgart - Zeltlager Mädels:
 
     docker run -d \
-    --name p2n-kv-stuttgart-zeltlager-maedels \
+    --name p2n-swdec-kvstuttgart-maedelslager \
     --restart unless-stopped \
     --env-file .env \
-    ghcr.io/tben2000/pretix2nextcloud-kv-stuttgart-zeltlager-maedels:latest
+    ghcr.io/tben2000/p2n-swdec-kvstuttgart-maedelslager:latest
 
 <br>
 
