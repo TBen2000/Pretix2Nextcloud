@@ -93,7 +93,7 @@ jobs:
 
           # Set output
           if len(final_list) > 0:
-              print(f"Building images: {[i['name'] for i in final_list]}")
+              print(f"Building images: {[i['id'] for i in final_list]}")
               with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
                   # JSON must be formatted as a string without newlines for the output
                   fh.write(f"matrix={json.dumps(final_list)}\n")
