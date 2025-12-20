@@ -9,11 +9,11 @@ LABEL org.opencontainers.image.licenses=MIT
 WORKDIR /app
 
 COPY requirements.txt .
-COPY swdec_kv-stuttgart_maedelslager/main.py .
+COPY swdec_kv-stuttgart_maedelslager/app.py .
 COPY P2N.py .
 
 RUN python -m venv /app/venv
 RUN /app/venv/bin/pip install --upgrade pip
 RUN /app/venv/bin/pip install --no-cache-dir -r requirements.txt
 
-CMD ["/app/venv/bin/python", "main.py"]
+CMD ["/app/venv/bin/python", "app.py"]
