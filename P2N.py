@@ -323,9 +323,9 @@ class Environment:
         run_once = self._get_env(name="RUN_ONCE", default=default)
         run_once_lower = run_once.lower()
 
-        if run_once_lower == "true":
+        if run_once_lower in ("true", "yes", "1"):
             return True
-        if run_once_lower == "false":
+        if run_once_lower in ("false", "no", "0"):
             return False
 
         raise ValueError(f"Environment variable 'RUN_ONCE' must be either 'true' or 'false'. Current value: '{run_once}'")
