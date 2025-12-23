@@ -1,5 +1,5 @@
 # General Pretix2Nextcloud helper classes
-# Needs to be imported in specific instances of Pretix2Nextcloud (e.g. in kv-stuttgart-jungschartag.py)
+# Needs to be imported in specific instances of Pretix2Nextcloud (app.py)
 
 import requests
 import pandas as pd
