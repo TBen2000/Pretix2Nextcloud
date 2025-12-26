@@ -933,7 +933,7 @@ class Excel:
             logging.error(f"Error deleting file '{path_to_excel_file}': {e}")
 
 
-class Nextcloud:
+class Cloud:
     def __init__(self):
         """
         Initialize Nextcloud connection with environment variables.
@@ -1102,7 +1102,7 @@ class Nextcloud:
 class Main:
     def __init__(self):
         self.excel = Excel()
-        self.nc = Nextcloud()
+        self.cloud = Cloud()
 
         self.success_on_last_run = False
 
@@ -1140,7 +1140,7 @@ class Main:
         if filterable is True:
             self.excel.add_filters(filepath)
 
-        self.nc.upload_excel(filepath, subdir)
+        self.cloud.upload_excel(filepath, subdir)
 
         self.excel.delete_excel(filepath)
 
@@ -1165,7 +1165,7 @@ class Main:
 
         try:
             self.excel = Excel()
-            self.nc = Nextcloud()
+            self.cloud = Cloud()
             
             self.main()
             
@@ -1181,7 +1181,7 @@ class Main:
                 self.success_on_last_run = False
                 
             try:
-                self.nc.upload_last_updated(error_message=e)
+                self.cloud.upload_last_updated(error_message=e)
             except Exception as upload_error:
                 logging.error(upload_error)
 

@@ -222,9 +222,9 @@ class CustomMain(Main):
         # generate and upload excel file for numbers overview
         self.upload(dataframe.numbers_overview, "Anmeldezahlen")
 
-        self.nc.upload_last_updated()
+        self.cloud.upload_last_updated()
         
-        self.nc.upload_docker_image_version()
+        self.cloud.upload_docker_image_version()
 
 
 if __name__ == "__main__":
