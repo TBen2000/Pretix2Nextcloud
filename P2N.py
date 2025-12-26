@@ -779,6 +779,16 @@ class Excel:
         filename = filename.replace("*", "")
 
         return filename
+    
+    def _escape_excel_formula(self, value):
+        if isinstance(value, str) and value.lstrip().startswith(("=", "+", "-", "@")):
+            return "'" + value
+        return value
+    
+    def _protect_against_formula_injection(self, df: pd.DataFrame) -> pd.DataFrame:
+        for col in df.select_dtypes(include="object").columns:
+            df[col] = df[col].apply(self._escape_excel_formula)
+        return df
 
     def save_to_excel(self, df: pd.DataFrame, filename: str) -> str:
         """
@@ -794,6 +804,8 @@ class Excel:
         sheet_name = filename.removesuffix(".xlsx")
 
         path = os.path.join(self.temp_dir, filename)
+        
+        df = self._protect_against_formula_injection(df)
 
         # write dataframe to excel
         with pd.ExcelWriter(path, engine="openpyxl") as writer:
