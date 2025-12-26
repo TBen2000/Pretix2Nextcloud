@@ -730,6 +730,81 @@ class PretixAPI:
         logging.info("Fetched raw data from Pretix API.")
 
         return df
+    
+    
+class FilenameHandling():
+    def sanitize_filename(self, filename: str) -> str:
+        """
+        Sanitize the filename by replacing or removing invalid characters.
+        """
+        
+        filename = filename.replace("\n", " ")
+        filename = filename.replace("\r", " ")
+        filename = filename.replace("\t", " ")
+        filename = filename.replace("<", "_")
+        filename = filename.replace(">", "_")
+        filename = filename.replace(":", "")
+        filename = filename.replace('"', "")
+        filename = filename.replace("/", "+")
+        filename = filename.replace("\\", "_")
+        filename = filename.replace("|", "_")
+        filename = filename.replace("?", "")
+        filename = filename.replace("*", "")
+        filename = filename.replace("%", "")
+        filename = filename.strip()
+        
+        return filename
+    
+    def sanitize_path(self, path:str) -> str:
+        path = path.replace("\n", " ")
+        path = path.replace("\r", " ")
+        path = path.replace("\t", " ")
+        path = path.replace("<", "_")
+        path = path.replace(">", "_")
+        path = path.replace(":", "")
+        path = path.replace('"', "")
+        path = path.replace("|", "_")
+        path = path.replace("?", "")
+        path = path.replace("*", "")
+        path = path.replace("%", "")
+        path = path.strip()
+        
+        # remove trailing dots
+        while path.endswith("."):
+            path = path.rstrip(".")
+            path = path.strip()
+        
+        # remove trailing dots in folder names, trailing dots in folder names, and leading and trailing spaces in folder names
+        while any(x in path for x in ["./", ".\\", "//", "\\\\", " /", "/ ", " \\", "\\ "]):
+            path = path.replace("./", "/")
+            path = path.replace(".\\", "\\")
+            path = path.replace("//", "/")
+            path = path.replace("\\\\", "\\")
+            path = path.replace(" /", "/")
+            path = path.replace("/ ", "/")
+            path = path.replace(" \\", "\\")
+            path = path.replace("\\ ", "\\")
+        
+        return path
+    
+    def get_parent_directories(self, path: str) -> list[str]:
+        """
+        Get all parent directories of a given path.
+        e.g. for path "A/B/C" it returns ["A", "A/B", "A/B/C"]
+        """
+
+        # ensure that the path does not end with a slash
+        path = path.rstrip("/\\")
+
+        parent_dirs = []
+
+        # walk through the path and build the parent directories
+        while path != os.path.dirname(path):
+            parent_dirs.append(path)
+            path = os.path.dirname(path)
+
+        # reverse the list to have the directories in hierarchical order from top to bottom.
+        return parent_dirs[::-1]
 
 
 class Excel:
@@ -739,33 +814,11 @@ class Excel:
         """
         env = Environment()
         self.max_column_width = env.get_excel_max_column_width()
-        temp_dir_name = "p2n_" + self._sanitize_filename(env.get_pretix_event_slug())
+        temp_dir_name = "p2n_" + FilenameHandling().sanitize_filename(env.get_pretix_event_slug())
         
         self.temp_dir = os.path.join(tempfile.gettempdir(), temp_dir_name)
         Path(self.temp_dir).mkdir(parents=True, exist_ok=True)
-        
 
-    def _sanitize_filename(self, filename: str) -> str:
-        """
-        Sanitize the filename by replacing or removing invalid characters.
-        """
-        filename = filename.strip()
-        filename = filename.replace("\\n", " ")
-        filename = filename.replace("\\r", " ")
-        filename = filename.replace("\\t", " ")
-        filename = filename.replace("<", "_")
-        filename = filename.replace(">", "_")
-        filename = filename.replace(":", "")
-        filename = filename.replace('"', "")
-        filename = filename.replace("'", "")
-        filename = filename.replace("/", "+")
-        filename = filename.replace("\\", "_")
-        filename = filename.replace("|", "_")
-        filename = filename.replace("?", "")
-        filename = filename.replace("*", "")
-
-        return filename
-    
     def _escape_excel_formula(self, value):
         if isinstance(value, str) and value.lstrip().startswith(("=", "+", "-", "@")):
             return "'" + value
@@ -782,7 +835,7 @@ class Excel:
         Returns the path to the saved Excel file.
         """
 
-        filename = self._sanitize_filename(filename)
+        filename = FilenameHandling().sanitize_filename(filename)
 
         if not filename.endswith(".xlsx"):
             filename += ".xlsx"
@@ -907,50 +960,7 @@ class Nextcloud:
 
         adapter = HTTPAdapter(max_retries=retries)
         self.session.mount("https://", adapter)
-        self.session.mount("http://", adapter)
-        
-
-    def _sanitize_filename(self, filename: str) -> str:
-        """
-        Sanitize the filename by replacing or removing invalid characters.
-        """
-        filename = filename.strip()
-        filename = filename.replace("\\n", " ")
-        filename = filename.replace("\\r", " ")
-        filename = filename.replace("\\t", " ")
-        filename = filename.replace("<", "_")
-        filename = filename.replace(">", "_")
-        filename = filename.replace(":", "")
-        filename = filename.replace('"', "")
-        filename = filename.replace("'", "")
-        filename = filename.replace("/", "+")
-        filename = filename.replace("\\", "_")
-        filename = filename.replace("|", "_")
-        filename = filename.replace("?", "")
-        filename = filename.replace("*", "")
-
-        return filename
-    
-
-    def _get_parent_directories(self, path: str) -> list[str]:
-        """
-        Get all parent directories of a given path.
-        e.g. for path "A/B/C" it returns ["A", "A/B", "A/B/C"]
-        """
-
-        # ensure that the path does not end with a slash
-        path = path.rstrip(os.sep)
-
-        parent_dirs = []
-
-        # walk through the path and build the parent directories
-        while path != os.path.dirname(path):
-            parent_dirs.append(path)
-            path = os.path.dirname(path)
-
-        # reverse the list to have the directories in hierarchical order from top to bottom.
-        return parent_dirs[::-1]
-            
+        self.session.mount("http://", adapter)                
         
     def create_dir(self, directory: str) -> None:
         """
@@ -958,6 +968,7 @@ class Nextcloud:
         """
         
         full_dir = os.path.join(self.upload_dir, directory)
+        full_dir = FilenameHandling().sanitize_path(full_dir)
         webdav_url = os.path.join(self.base_url, full_dir)
         
         if "../" in full_dir or "/.." in full_dir:  # if directory tries to use parent directories and tries to upload to a destination outside of the given upload directory
@@ -983,7 +994,7 @@ class Nextcloud:
                 logging.debug(f"Creating Nextcloud directory: Parent node does not exist ({webdav_url}). Creating parent directories now.")
                 
                 dir_path = os.path.join(self.upload_dir, directory)
-                for dir in self._get_parent_directories(dir_path):
+                for dir in FilenameHandling().get_parent_directories(dir_path):
                     r = self.session.request(
                         method="MKCOL",
                         url=os.path.join(self.base_url, dir),
@@ -1037,7 +1048,7 @@ class Nextcloud:
 
         try:
             filename = os.path.basename(source_file)
-            filename = self._sanitize_filename(filename)
+            filename = FilenameHandling().sanitize_filename(filename)
             if not filename.lower().endswith(".xlsx"):
                 raise Exception("File is not an Excel file (.xlsx)")
 
@@ -1052,7 +1063,7 @@ class Nextcloud:
         Upload a timestamp file indicating the last update time.
         """
         try:
-            filename = self._sanitize_filename(filename)
+            filename = FilenameHandling().sanitize_filename(filename)
             
             if not filename.lower().endswith(".txt"):
                 filename += ".txt"
@@ -1074,7 +1085,7 @@ class Nextcloud:
         """
         
         try:
-            filename = self._sanitize_filename(filename)
+            filename = FilenameHandling().sanitize_filename(filename)
             
             if not filename.lower().endswith(".txt"):
                 filename += ".txt"
