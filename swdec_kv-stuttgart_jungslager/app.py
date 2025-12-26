@@ -21,7 +21,6 @@ Environment().set_defaults(
     default_pretix_url="https://tickets.swdec.de",
     default_pretix_organizer_slug="kv-stuttgart",
     default_excel_max_column_width=30,
-    default_temp_dir_name="p2n_zeltlager-jungs",
     default_nextcloud_url="https://jcloud.swdec.de",
     default_nextcloud_upload_dir="Anmeldungen_Zeltlager-Jungs",
     default_timezone="Europe/Berlin",

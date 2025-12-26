@@ -28,7 +28,6 @@ class Environment:
         default_pretix_url: str = None,
         default_pretix_organizer_slug: str = None,
         default_excel_max_column_width: int = None,
-        default_temp_dir_name: str = None,
         default_nextcloud_url: str = None,
         default_nextcloud_upload_dir: str = None,
         default_timezone: str = None,
@@ -148,20 +147,6 @@ class Environment:
             return default
 
         return width
-
-    def get_temp_dir_name(self) -> str:
-        """
-        Return the name of the used subdirectory in the tmp folder from environment variable 'TEMP_DIR_NAME'.
-        """
-
-        try:
-            default = str(self._get_class_variable_value("default_temp_dir_name"))
-        except Exception:
-            raise Exception("Environment.__class__.default_temp_dir_name can't be stringified. Check the value you entered while calling set_defaults() function.")
-
-        temp_dir_name = self._get_env(name="TEMP_DIR_NAME", default=default)
-
-        return temp_dir_name
 
     def get_nextcloud_url(self) -> str:
         """
@@ -754,8 +739,8 @@ class Excel:
         """
         env = Environment()
         self.max_column_width = env.get_excel_max_column_width()
-        temp_dir_name = env.get_temp_dir_name()
-
+        temp_dir_name = "p2n_" + self._sanitize_filename(env.get_pretix_event_slug())
+        
         self.temp_dir = os.path.join(tempfile.gettempdir(), temp_dir_name)
         Path(self.temp_dir).mkdir(parents=True, exist_ok=True)
         
@@ -772,6 +757,7 @@ class Excel:
         filename = filename.replace(">", "_")
         filename = filename.replace(":", "")
         filename = filename.replace('"', "")
+        filename = filename.replace("'", "")
         filename = filename.replace("/", "+")
         filename = filename.replace("\\", "_")
         filename = filename.replace("|", "_")
@@ -936,6 +922,7 @@ class Nextcloud:
         filename = filename.replace(">", "_")
         filename = filename.replace(":", "")
         filename = filename.replace('"', "")
+        filename = filename.replace("'", "")
         filename = filename.replace("/", "+")
         filename = filename.replace("\\", "_")
         filename = filename.replace("|", "_")
