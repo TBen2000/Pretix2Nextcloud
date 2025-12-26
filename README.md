@@ -34,7 +34,7 @@ Create a new file called `.env` and store your environment variables there like 
 
 <br>
 
-#### _Optionally:_
+#### _Base64 encoding (optionally):_
 If you want to encode your environment variables with base64, you need to use the prefix `BASE64:` like this:
 
     NEXTCLOUD_PASSWORD=BASE64:TXlTZWN1cmVQYXNzd29yZDEyMyE=
@@ -44,7 +44,7 @@ If you want to encode your environment variables with base64, you need to use th
 
 <br>
 
-#### _Optionally:_
+#### _More variables (optionally):_
 You can also add following optional environment variables if you need to customize the behavior apart from the defaults (_normally not necessary_):
 
 | environment variable    | default value              |
