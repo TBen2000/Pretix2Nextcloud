@@ -170,13 +170,13 @@ class Dataframe:
         )
 
         # make Ortschaft the index
-        numbers_df.set_index("Ortschaft", inplace=True)
+        numbers_df = numbers_df.set_index("Ortschaft")
 
         df = self.sorted_df
 
         number_of_kids = len(df[df["Art"].str.contains("Jungscharler", na=False)])
         number_of_staff = len(df[df["Art"].str.contains("Mitarbeiter", na=False)])
-        number_total = number_of_kids + number_of_staff
+        number_total = len(df)
 
         # add row to numbers_df
         numbers_df.loc["GESAMT"] = [number_of_kids, number_of_staff, number_total]
@@ -191,7 +191,7 @@ class Dataframe:
             town_staff = len(
                 town_df[town_df["Art"].str.contains("Mitarbeiter", na=False)]
             )
-            town_total = town_kids + town_staff
+            town_total = len(town_df)
 
             # add row to numbers_df
             numbers_df.loc[town] = [town_kids, town_staff, town_total]

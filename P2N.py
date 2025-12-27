@@ -829,7 +829,7 @@ class Excel:
             df[col] = df[col].apply(self._escape_excel_formula)
         return df
 
-    def save_to_excel(self, df: pd.DataFrame, filename: str) -> str:
+    def save_to_excel(self, df: pd.DataFrame, filename: str, freeze_panes: tuple[int, int] = (1, 1)) -> str:
         """
         Save the given DataFrame to an Excel file with the specified filename in the temporary directory.
         Returns the path to the saved Excel file.
@@ -848,7 +848,7 @@ class Excel:
 
         # write dataframe to excel
         with pd.ExcelWriter(path, engine="openpyxl") as writer:
-            df.to_excel(writer, sheet_name=sheet_name, index=True, freeze_panes=(1, 1))
+            df.to_excel(writer, sheet_name=sheet_name, index=True, freeze_panes=freeze_panes)
             worksheet = writer.sheets[sheet_name]
 
             # adjust column widths including index column and header
@@ -1114,7 +1114,7 @@ class Main:
         logging.basicConfig(level=level)
 
 
-    def run(self):
+    def run(self) -> None:
         """
         Run main on startup and schedule loop for continuous execution.
         """
@@ -1130,12 +1130,12 @@ class Main:
         # schedule loop for continuous execution
         self.schedule_loop()
 
-    def upload(self, df: pd.DataFrame, filename: str, subdir: str = "", filterable: bool = False):
+    def upload(self, df: pd.DataFrame, filename: str, subdir: str = "", filterable: bool = False, freeze_panes: tuple[int, int] = (1, 1)) -> None:
         """
         Generate excel file from dataframe, upload excel file and delete it afterwards. Can also add filters to excel file.
         """
         
-        filepath = self.excel.save_to_excel(df, filename)
+        filepath = self.excel.save_to_excel(df, filename, freeze_panes)
 
         if filterable is True:
             self.excel.add_filters(filepath)
@@ -1144,7 +1144,7 @@ class Main:
 
         self.excel.delete_excel(filepath)
 
-    def schedule_loop(self):
+    def schedule_loop(self) -> None:
         """
         Schedule main function to run at configured intervals.
         """
@@ -1158,7 +1158,7 @@ class Main:
             schedule.run_pending()
             time.sleep(env.get_check_interval_seconds())  # check periodically if task needs to run        
 
-    def main_wrapper(self):
+    def main_wrapper(self) -> None:
         """
         Wrapper for main function with error handling.
         """
@@ -1185,7 +1185,7 @@ class Main:
             except Exception as upload_error:
                 logging.error(upload_error)
 
-    def main(self):
+    def main(self) -> None:
         """
         You need to override this function using a subclass to customize your P2N instance.
         """
