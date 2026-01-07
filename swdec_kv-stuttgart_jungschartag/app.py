@@ -77,11 +77,15 @@ class Dataframe:
             "Essensunverträglichkeiten": "Essensunverträglichkeiten Ja/Nein",
             "Welche Unverträglichkeiten?": "Essensunverträglichkeiten",
             "Ich melde mich über folgende Ortschaft an": "Ortschaft",
-            "Ich biete eine Fahrgemeinschaft an": "Fahrer Angebot",
+            "Ich biete eine Fahrgemeinschaft an": "Fahrer Angebot Eltern",
+            "Ich stelle mich als Fahrer bereit": "Fahrer Angebot Mitarbeiter",
             "Ich bin Ortsverantwortlicher.": "Ortsverantwortlicher",
             "Telefonnummer": "Telefonnummer Mitarbeiter",
         }
         df = df.rename(columns=renames)
+        
+        # combine "Fahrer Angebot Eltern" and "Fahrer Angebot Mitarbeiter" to one column "Telefonnummer"
+        df["Fahrer Angebot"] = df["Fahrer Angebot Eltern"].combine_first(df["Fahrer Angebot Mitarbeiter"])
 
         # combine "Telefonnummer der Eltern" and "Telefonnummer Mitarbeiter" to one column "Telefonnummer"
         df["Telefonnummer"] = df["Telefonnummer der Eltern"].combine_first(
