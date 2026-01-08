@@ -832,9 +832,10 @@ class Excel:
         return value
     
     def _protect_against_formula_injection(self, df: pd.DataFrame) -> pd.DataFrame:
-        for col in df.select_dtypes(include="object").columns:
-            df[col] = df[col].apply(self._escape_excel_formula)
-        return df
+        new_df = df.copy()
+        for col in new_df.select_dtypes(include="object").columns:
+            new_df[col] = new_df[col].apply(self._escape_excel_formula)
+        return new_df
 
     def save_to_excel(self, df: pd.DataFrame, filename: str, freeze_panes: tuple[int, int] = (1, 1)) -> str:
         """
