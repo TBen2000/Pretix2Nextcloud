@@ -47,7 +47,7 @@ class Dataframe:
 
         if success_on_last_run and self.__class__.last_raw_df.equals(self.raw_df):
             raise Exception("No changes in data since last fetch.")
-        self.__class__.last_raw_df = self.raw_df
+        self.__class__.last_raw_df = self.raw_df.copy()
         
         self.towns_list = pretix.get_question_choices_by_text("Ich melde mich über folgende Ortschaft an")
 
