@@ -423,6 +423,8 @@ class Environment:
 
 
 class PretixAPI:
+    last_raw_df = pd.DataFrame()  # global variable to store last fetched raw dataframe
+    
     def __init__(self):
         """
         Initialize, fetch data from Pretix API.
@@ -730,6 +732,11 @@ class PretixAPI:
         logging.info("Fetched raw data from Pretix API.")
 
         return df
+
+    def check_for_new_fetched_data(self, raw_df: pd.DataFrame, success_on_last_run: bool = False) -> None:
+        if success_on_last_run and self.__class__.last_raw_df.equals(raw_df):
+            raise Exception("No changes in data since last fetch.")
+        self.__class__.last_raw_df = raw_df.copy()
     
     
 class FilenameHandling():

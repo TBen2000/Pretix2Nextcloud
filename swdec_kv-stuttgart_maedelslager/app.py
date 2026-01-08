@@ -44,10 +44,8 @@ class Dataframe:
         self.time_zone = env.get_timezone()
 
         self.raw_df = pretix.get_raw_df()
-
-        if success_on_last_run and self.__class__.last_raw_df.equals(self.raw_df):
-            raise Exception("No changes in data since last fetch.")
-        self.__class__.last_raw_df = self.raw_df
+        # check for new fetched data and raise exception if no new data occured so that Main can skip this run
+        pretix.check_for_new_fetched_data(self.raw_df, success_on_last_run)
         
         self.towns_list = pretix.get_question_choices_by_text("Ich melde mich über folgende Ortschaft an")
 
