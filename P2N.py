@@ -740,9 +740,17 @@ class PretixAPI:
         """
         Check if the newly fetched raw_df is different from the last fetched data. Raises an Exception if the data is duplicate.
         """
+
+        if not success_on_last_run:
+            logging.debug("Last run did not complete successfully (or is run the first time). Skipping data change check and continuing processing.")
         
-        if success_on_last_run and raw_df.equals(self.__class__.last_raw_df):
+        elif not raw_df.equals(self.__class__.last_raw_df):
+            logging.debug("Data check: data fetched from Pretix API contains new data. Continue processing.")
+        
+        else:
+            # raise exception if no new data occured so that Main can skip this run
             raise Exception("No changes in data since last fetch.")
+        
         self.__class__.last_raw_df = raw_df.copy()
     
     
@@ -1140,7 +1148,9 @@ class Main:
         # stop here if RUN_ONCE is true
         if Environment().get_run_once() is True:
             logging.info("RUN_ONCE is set to true. Exiting now after single run.")
-            exit(0)
+            logging.info("Going into idle until container is stopped.")
+            while True:
+                time.sleep(3600)
 
         # schedule loop for continuous execution
         self.schedule_loop()
