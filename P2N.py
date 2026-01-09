@@ -1155,20 +1155,6 @@ class Main:
         # schedule loop for continuous execution
         self.schedule_loop()
 
-    def upload(self, df: pd.DataFrame, filename: str, subdir: str = "", filterable: bool = False, freeze_panes: tuple[int, int] = (1, 1)) -> None:
-        """
-        Generate excel file from dataframe, upload excel file and delete it afterwards. Can also add filters to excel file.
-        """
-        
-        filepath = self.excel.save_to_excel(df, filename, freeze_panes)
-
-        if filterable is True:
-            self.excel.add_filters(filepath)
-
-        self.cloud.upload_excel(filepath, subdir)
-
-        self.excel.delete_excel(filepath)
-
     def schedule_loop(self) -> None:
         """
         Schedule main function to run at configured intervals.
@@ -1209,6 +1195,20 @@ class Main:
                 self.cloud.upload_last_updated(error_message=e)
             except Exception as upload_error:
                 logging.error(upload_error)
+                
+    def upload(self, df: pd.DataFrame, filename: str, subdir: str = "", filterable: bool = False, freeze_panes: tuple[int, int] = (1, 1)) -> None:
+        """
+        Generate excel file from dataframe, upload excel file and delete it afterwards. Can also add filters to excel file.
+        """
+        
+        filepath = self.excel.save_to_excel(df, filename, freeze_panes)
+
+        if filterable is True:
+            self.excel.add_filters(filepath)
+
+        self.cloud.upload_excel(filepath, subdir)
+
+        self.excel.delete_excel(filepath)
 
     def main(self) -> None:
         """
