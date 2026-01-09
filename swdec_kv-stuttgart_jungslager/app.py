@@ -47,7 +47,7 @@ class Dataframe:
         # check for new fetched data and raise exception if no new data occured so that Main can skip this run
         pretix.check_for_new_fetched_data(self.raw_df, success_on_last_run)
         
-        self.towns_list = pretix.get_question_choices_by_text("Ich melde mich über folgende Ortschaft an")
+        self.towns_list = pretix.get_answer_choices_from_question("Ich melde mich über folgende Ortschaft an")
 
         self.sorted_df = self._get_sorted_df()
         self.town_dfs = self._get_town_dfs()

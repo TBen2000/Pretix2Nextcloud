@@ -423,7 +423,7 @@ class Environment:
 
 
 class PretixAPI:
-    last_raw_df = pd.DataFrame()  # global variable to store last fetched raw dataframe
+    last_raw_df = None  # global variable to store last fetched raw dataframe
     
     def __init__(self):
         """
@@ -475,7 +475,7 @@ class PretixAPI:
         return questions
 
 
-    def get_question_choices_by_text(self, question_str: str) -> list:
+    def get_answer_choices_from_question(self, question_str: str) -> list:
         """
         Given the clear-text question name (question_str), find all question IDs that
         have that visible text and fetch their possible answer options from the
@@ -486,7 +486,7 @@ class PretixAPI:
         """
 
         if not question_str.strip():
-            raise Exception("Empty question text provided to get_question_choices_by_text()")
+            raise Exception("Empty question text provided to get_answer_choices_from_question()")
 
         # build a fresh mapping of id -> text (ensures up-to-date data)
         question_map = self._get_questions()
@@ -728,13 +728,20 @@ class PretixAPI:
             # Add empty column if it doesn't exist yet
             if unique_col_name not in df.columns:
                 df[unique_col_name] = ""
-
+        
+        if df.empty:
+            raise Exception("No data fetched from Pretix API.")
+        
         logging.info("Fetched raw data from Pretix API.")
 
         return df
 
     def check_for_new_fetched_data(self, raw_df: pd.DataFrame, success_on_last_run: bool = False) -> None:
-        if success_on_last_run and self.__class__.last_raw_df.equals(raw_df):
+        """
+        Check if the newly fetched raw_df is different from the last fetched data. Raises an Exception if the data is duplicate.
+        """
+        
+        if success_on_last_run and raw_df.equals(self.__class__.last_raw_df):
             raise Exception("No changes in data since last fetch.")
         self.__class__.last_raw_df = raw_df.copy()
     
