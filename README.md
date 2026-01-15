@@ -103,6 +103,9 @@ Run the desired Docker image with one of the following commands:
 
 > These commands are structured as multiline commands. You can copy the whole command and paste it to your command line even though it contains multiple lines.
 
+> [!TIP]
+> If you want to use **[Docker Compose](https://docs.docker.com/compose/)** instead of Docker, you can use this [Converter](https://it-tools.tech/docker-run-to-docker-compose-converter) to convert the above commands. Paste the output to a `docker-compose.yaml` file and run `docker compose up -d`.
+
 <br>
 
 ### Step 4:
@@ -110,8 +113,8 @@ Delete `.env` file after starting the container to avoid leaking sensitive data.
 
 <br>
 
-### Alternative for advandced users:
-If you're running Docker Swarm and want to use **Docker secrets** instead of environment variables for sensitive data like API tokens and passwords, you can set your secrets and hand over their names in following environment variables:
+### Alternative for advanced users:
+If you're running Docker Swarm and want to use **[Docker secrets](https://docs.docker.com/engine/swarm/secrets/)** instead of environment variables for sensitive data like API tokens and passwords, you can set your secrets and hand over their names in following environment variables:
 
 - `NEXTCLOUD_USERNAME_SECRET_NAME` instead of `NEXTCLOUD_USERNAME`
 - `NEXTCLOUD_PASSWORD_SECRET_NAME` instead of `NEXTCLOUD_PASSWORD`
