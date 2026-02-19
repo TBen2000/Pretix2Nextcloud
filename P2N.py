@@ -1063,6 +1063,31 @@ class Cloud:
 
         except Exception as e:
             raise Exception(f"Network error uploading file '{filename}': {e}")
+        
+    def append_file(self, filename: str, data: bytes, subdir: str = "") -> None:
+        """
+        Append data to an existing file on Nextcloud. If the file does not exist, it will be created.
+        """
+
+        try:
+            # Try to get existing file content
+            r = self.session.get(
+                url=os.path.join(self.base_url, self.upload_dir, subdir, filename),
+            )
+
+            if r.status_code == 200:
+                existing_data = r.content
+                combined_data = existing_data + data
+            elif r.status_code == 404:
+                combined_data = data  # File does not exist, will be created
+            else:
+                raise Exception(f"Error checking existing file '{filename}': {r.status_code} - {r.text}")
+
+            # Upload combined data
+            self.upload_file(filename, combined_data, subdir)
+
+        except Exception as e:
+            raise Exception(f"Error appending to file '{filename}': {e}")
 
     def upload_excel(self, source_file: str, subdir: str = "") -> None:
         """
@@ -1096,6 +1121,7 @@ class Cloud:
             
             if error_message:
                 data += f"\n\nERROR occurred:\n{error_message}"
+                self.append_error_logs(subdir=subdir, error_message=error_message)
 
             self.upload_file(filename, data.encode("utf-8"), subdir)
         
@@ -1120,6 +1146,22 @@ class Cloud:
         
         except Exception as e:
             raise Exception(f"Error while uploading Docker version: {e}")
+        
+    def append_error_logs(self, filename: str = "Error_Logs.txt", subdir: str = "", error_message: str = "") -> None:
+        """
+        Append error logs to a file on Nextcloud.
+        """
+        try:
+            filename = FilenameHandling().sanitize_filename(filename)
+            
+            if not filename.lower().endswith(".txt"):
+                filename += ".txt"
+
+            data = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}:\n{error_message}\n\n{'-'*40}\n\n"
+            self.append_file(filename, data.encode("utf-8"), subdir)
+        
+        except Exception as e:
+            raise Exception(f"Error while appending error logs: {e}")
         
 
 class Main:
