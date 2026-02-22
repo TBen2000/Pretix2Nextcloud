@@ -876,9 +876,15 @@ class Excel:
 
             # adjust column widths including index column and header
             for idx, col in enumerate(df.columns, start=2):  # start=2 because index is in column 1
+                max_data_length = (
+                    df[col]
+                    .fillna("")
+                    .apply(lambda x: len(str(x)))
+                    .max()
+                )
                 max_length = max(
                     len(str(col)),  # header length
-                    df[col].astype(str).map(len).max(),  # data length
+                    max_data_length,  # data length
                 )
                 length = min(max_length + 2, self.max_column_width)  # cap the width via constant
 
@@ -1121,7 +1127,7 @@ class Cloud:
             
             if error_message:
                 data += f"\n\nERROR occurred:\n{error_message}"
-                self.append_error_logs(subdir=subdir, error_message=error_message)
+                #self.append_error_logs(subdir=subdir, error_message=error_message)
 
             self.upload_file(filename, data.encode("utf-8"), subdir)
         
