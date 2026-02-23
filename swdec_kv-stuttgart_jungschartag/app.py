@@ -57,7 +57,7 @@ class Dataframe:
         Process raw dataframe to create a sorted dataframe with required columns.
         """
 
-        df = self.raw_df
+        df = self.raw_df.copy()
 
         # removed all cancelled registrations
         df = df[df["status"] != "c"]
@@ -128,7 +128,7 @@ class Dataframe:
         Process sorted dataframe to create a dictionary of dataframes filtered by town.
         """
 
-        df = self.sorted_df
+        df = self.sorted_df.copy()
 
         # filter for columns and set their order
         wanted_columns = [
