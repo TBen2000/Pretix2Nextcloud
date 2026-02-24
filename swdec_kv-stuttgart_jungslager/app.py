@@ -45,10 +45,6 @@ class Dataframe:
 
         self.raw_df = pretix.get_raw_df()
         
-        print("\n\n\n\n")
-        print(self.raw_df["Wir melden uns über folgenden Ort an"].unique())
-        print("\n\n\n\n")
-        
         # check for new fetched data and raise exception if no new data occured so that Main can skip this run
         pretix.check_for_new_fetched_data(self.raw_df, success_on_last_run)
         
