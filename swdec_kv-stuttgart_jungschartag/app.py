@@ -148,7 +148,9 @@ class Dataframe:
 
         # sort by town:
         df_by_town_dict = {}
-        for town in self.towns_list:
+        df_towns = (df["Ortschaft"].dropna().astype(str).str.strip().unique())
+        towns = sorted(set(self.towns_list) | set(df_towns))
+        for town in towns:
             # filter by town, drop column "Ortschaft" and reset index numbers
             town_df = df[df["Ortschaft"] == town]
             town_df = town_df.drop(columns=["Ortschaft"])

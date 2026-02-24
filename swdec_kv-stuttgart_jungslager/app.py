@@ -44,6 +44,11 @@ class Dataframe:
         self.time_zone = env.get_timezone()
 
         self.raw_df = pretix.get_raw_df()
+        
+        print("\n\n\n\n")
+        print(self.raw_df["Wir melden uns über folgenden Ort an"].unique())
+        print("\n\n\n\n")
+        
         # check for new fetched data and raise exception if no new data occured so that Main can skip this run
         pretix.check_for_new_fetched_data(self.raw_df, success_on_last_run)
         
@@ -296,7 +301,9 @@ class Dataframe:
 
         # sort by town:
         df_by_town_dict = {}
-        for town in self.towns_list:
+        df_towns = (df["Ort"].dropna().astype(str).str.strip().unique())
+        towns = sorted(set(self.towns_list) | set(df_towns))
+        for town in towns:
             # filter by town, drop column "Ort" and reset index numbers
             town_df = df[df["Ort"] == town]
             town_df = town_df.drop(columns=["Ort"])
