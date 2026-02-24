@@ -55,6 +55,7 @@ class Dataframe:
         self.debloated_df = self._get_debloated_df()
         self.attendees_df = self._get_attendees_df()
         self.town_dfs = self._get_town_dfs()
+        self.sharable_town_dfs = self._get_sharable_town_dfs()
         self.numbers_overview = self._get_numbers_df()
         self.orders_df = self._get_orders_df()
         self.donataions_df = self._get_donations_df()
@@ -286,6 +287,7 @@ class Dataframe:
             "Geburtsdatum",
             "Besucht Jungschar",
             "Ort",
+            "Sonstiges",
             "Anmeldedatum",
         ]
         df = df.filter(wanted_columns)
@@ -310,6 +312,19 @@ class Dataframe:
         logging.info("Filtered attendees data by town.")
 
         return df_by_town_dict
+    
+    def _get_sharable_town_dfs(self) -> dict[str, pd.DataFrame]:
+        """
+        Process sorted dataframe for attendees to create a dictionary of dataframes filtered by town without the column "Sonstiges".
+        """
+        new_dfs = {}
+        
+        for town, town_df in self.town_dfs.items():
+            df = town_df.copy()
+            df = df.drop(columns=["Sonstiges"])
+            new_dfs[town] = df
+            
+        return new_dfs
 
     def _get_numbers_df(self) -> pd.DataFrame:
         """
@@ -568,9 +583,12 @@ class CustomMain(Main):
         self.upload(dataframe.attendees_df, "Teilnehmerdaten", filterable=True, freeze_panes=(1,3))
         
         # generate and upload excel file for town-wise attendees
-        for town in dataframe.town_dfs:
-            df = dataframe.town_dfs[town]
-            self.upload(df, town, subdir="Nach_Orten")
+        for town, df in dataframe.town_dfs.items():
+            self.upload(df, town, subdir="Nach_Orten", filterable=True)
+            
+        # generate and upload excel file for town-wise attendees
+        for town, df in dataframe.sharable_town_dfs.items():
+            self.upload(df, town, subdir="Zum_Teilen")
 
         # generate and upload excel file for numbers overview
         self.upload(dataframe.numbers_overview, "Anmeldezahlen", subdir="Nach_Orten")
