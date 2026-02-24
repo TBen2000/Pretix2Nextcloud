@@ -989,7 +989,9 @@ class Cloud:
 
         adapter = HTTPAdapter(max_retries=retries)
         self.session.mount("https://", adapter)
-        self.session.mount("http://", adapter)                
+        self.session.mount("http://", adapter)
+        
+        self.last_updated_subdir = ""
         
     def create_dir(self, directory: str) -> None:
         """
@@ -1116,6 +1118,13 @@ class Cloud:
         """
         Upload a timestamp file indicating the last update time.
         """
+        
+        # get stored subdir if set
+        if subdir:
+            self.last_updated_subdir = subdir
+        if self.last_updated_subdir:
+            subdir = self.last_updated_subdir
+        
         try:
             filename = FilenameHandling().sanitize_filename(filename)
             
@@ -1127,7 +1136,7 @@ class Cloud:
             
             if error_message:
                 data += f"\n\nERROR occurred:\n{error_message}"
-                #self.append_error_logs(subdir=subdir, error_message=error_message)
+                self.append_error_logs(subdir=subdir, error_message=error_message)
 
             self.upload_file(filename, data.encode("utf-8"), subdir)
         

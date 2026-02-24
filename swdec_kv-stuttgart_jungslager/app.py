@@ -608,9 +608,9 @@ class CustomMain(Main):
         # generate and upload excel file for diet information of attendees
         self.upload(dataframe.diet_info_df, "Küche", filterable=True)
         
-        self.cloud.upload_last_updated()
+        self.cloud.upload_last_updated(subdir="Technische_Details")
         
-        self.cloud.upload_docker_image_version()
+        self.cloud.upload_docker_image_version(subdir="Technische_Details")
 
 
 if __name__ == "__main__":
