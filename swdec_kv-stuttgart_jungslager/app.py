@@ -58,7 +58,6 @@ class Dataframe:
         self.orders_df = self._get_orders_df()
         self.donataions_df = self._get_donations_df()
         self.contacts_df = self._get_contacts_df()
-        self.permissions_df = self._get_permissions_df()
         self.medical_info_df = self._get_medical_info_df()
         self.diet_info_df = self._get_diet_info_df()
 
@@ -98,12 +97,20 @@ class Dataframe:
         }
         df = df.rename(columns=renames)
         
+        # combine "Rechnung - Name" and "Rechnung - Straße" to one column "Rechnung - Empfänger"
+        name = df["Rechnung - Name"].fillna("").str.strip()
+        company = df["Rechnung - Firma"].fillna("").str.strip()
+        df["Rechnung - Empfänger"] = (
+            name.where(name.eq("") | company.eq(""), name + " (" + company + ")")
+                .where(~name.eq(""), company)
+        )
+        
         # combine "Rechnung - Straße", "Rechnung - PLZ", "Rechnung - Stadt" and "Rechnung - Land" to "Rechnung - Adresse"
         df["Rechnung - Adresse"] = (
-            df["Rechnung - Straße"].fillna("") + ", " +
-            df["Rechnung - PLZ"].fillna("") + " " +
-            df["Rechnung - Stadt"].fillna("") + ", " +
-            df["Rechnung - Land"].fillna("")
+            df["Rechnung - Straße"].fillna("").str.strip() + ", " +
+            df["Rechnung - PLZ"].fillna("").str.strip() + " " +
+            df["Rechnung - Stadt"].fillna("").str.strip() + ", " +
+            df["Rechnung - Land"].fillna("").str.strip()
         )
         
         
@@ -125,21 +132,25 @@ class Dataframe:
         ] = "hochgeladen"
        
         # combine "Wo geht Ihr Kind in die Jungschar?" and "Wir melden uns über folgenden Ort an" and "Wir melden uns über folgenden Ort an (#2)" to "Ort"
-        cols = [
-            "Wo geht Ihr Kind in die Jungschar?",
-            "Wir melden uns über folgenden Ort an",
-            "Wir melden uns über folgenden Ort an (#2)"
-        ]
-
-        existing_cols = [c for c in cols if c in df.columns]
-        if existing_cols:
-            df["Ort"] = (
-                df[existing_cols]
-                    .bfill(axis=1)
-                    .iloc[:, 0]
-            )
-        else:
-            df["Ort"] = None
+        col1 = "Wo geht Ihr Kind in die Jungschar?"
+        col2 = "Wir melden uns über folgenden Ort an"
+        col3 = "Wir melden uns über folgenden Ort an (#2)"
+        # Make sure columns exist (avoid KeyError)
+        for col in [col1, col2, col3]:
+            if col not in df.columns:
+                df[col] = pd.NA
+        # Condition: col1 usable (not empty, not NA, not "Sonstige")
+        use_col1 = (
+            df[col1].notna() &
+            (df[col1] != "") &
+            (df[col1] != "Sonstige")
+        )
+        # Build Ort column
+        df["Ort"] = df[col1].where(use_col1, df[col2])
+        df["Ort"] = df["Ort"].where(
+            df["Ort"].notna() & (df["Ort"] != ""),
+            df[col3]
+        )
         
         # rename values in "Bestellstatus" from acronyms to the complete meaning
         # rename values "c" to "storniert", "n" to "unbezahlt" und "p" to "bezahlt"
@@ -159,12 +170,7 @@ class Dataframe:
             "E-Mail",
             "Gesamtpreis",
             "Anmeldedatum",
-            "Rechnung - Name",
-            "Rechnung - Firma",
-            "Rechnung - Straße",
-            "Rechnung - PLZ",
-            "Rechnung - Stadt",
-            "Rechnung - Land",
+            "Rechnung - Empfänger",
             "Rechnung - Adresse",
             "Art",
             "Preis",
@@ -179,7 +185,7 @@ class Dataframe:
             "Verabreichung rezeptfreier Medikamente durch den Sani des Lagers",
             "Medikamente",
             "Medizinische Besonderheiten",
-            "Notfall-Telefonnummer",
+            "Notfall-Telefonnummern",
             "T-Shirt Größe",
             "Schwimmer",
             "Besucht Jungschar",
@@ -200,6 +206,14 @@ class Dataframe:
         # change all values "Keiner (ortsunabhängige Anmeldung)" in column "Ort" to "ortsunanhängig"
         df["Ort"] = df["Ort"].replace("Keiner (ortsunabhängige Anmeldung)", "ortsunabhängig")
         
+        # strip leading/trailing whitespace from all string values in df
+        str_cols = df.select_dtypes(include=["object", "string"]).columns
+        df[str_cols] = (
+            df[str_cols]
+            .apply(lambda col: col.str.strip())
+            .replace("", pd.NA)
+        )
+        
         logging.info("Removed bloat from raw data.")
         
         return df
@@ -211,27 +225,17 @@ class Dataframe:
         """
 
         df = self.debloated_df.copy()
-
-        # removed all cancelled registrations
-        df = df[df["Bestellstatus"] != "storniert"]
         
         # remove all donation entries (entries with "Spende Zeltlagerarbeit" in column "Art")
         df = df[df["Art"] != "Spende Zeltlagerarbeit"]
 
+        # removed all cancelled registrations
+        df = df[df["Bestellstatus"] != "storniert"]
+
         # filter for columns and set their order
         wanted_columns = [
-            "Bestellnummer",
-            "Bestellstatus",
-            "E-Mail",
-            "Gesamtpreis",
-            "Anmeldedatum",
-            "Rechnung - Name",
-            "Rechnung - Firma",
-            "Rechnung - Adresse",
-            "Art",
-            "Preis",
-            "Vorname",
             "Nachname",
+            "Vorname",
             "Geburtsdatum",
             "Ernährung",
             "Essensunverträglichkeiten",
@@ -241,7 +245,7 @@ class Dataframe:
             "Verabreichung rezeptfreier Medikamente durch den Sani des Lagers",
             "Medikamente",
             "Medizinische Besonderheiten",
-            "Notfall-Telefonnummer",
+            "Notfall-Telefonnummern",
             "T-Shirt Größe",
             "Schwimmer",
             "Besucht Jungschar",
@@ -249,6 +253,11 @@ class Dataframe:
             "Sonstiges",
             "Zuschuss beantragt",
             "Einverständniserklärung",
+            "Bestellnummer",
+            "Anmeldedatum",
+            "E-Mail",
+            "Rechnung - Empfänger",
+            "Rechnung - Adresse",
         ]
         df = df.filter(wanted_columns)
 
@@ -339,8 +348,7 @@ class Dataframe:
             "E-Mail",
             "Gesamtpreis",
             "Anmeldedatum",
-            "Rechnung - Name",
-            "Rechnung - Firma",
+            "Rechnung - Empfänger",
             "Rechnung - Adresse",
             "Zuschuss beantragt",
         ]
@@ -389,6 +397,9 @@ class Dataframe:
         
         df = self.debloated_df.copy()
         
+        # filter for "Spende Zeltlagerarbeit" in column "Art"
+        df = df[df["Art"] == "Spende Zeltlagerarbeit"]
+        
         # filter for columns and set their order
         wanted_columns = [
             "Art",
@@ -396,17 +407,12 @@ class Dataframe:
             "Bestellstatus",
             "Anmeldedatum",
             "E-Mail",
-            "Rechnung - Name",
-            "Rechnung - Firma",
+            "Rechnung - Empfänger",
             "Rechnung - Adresse",
             "Bestellnummer",
             "Zuschuss beantragt",
         ]
-        df = df.filter(wanted_columns)
-        
-        # filter for "Spende Zeltlagerarbeit" in column "Art"
-        df = df[df["Art"] == "Spende Zeltlagerarbeit"]
-        
+        df = df.filter(wanted_columns)        
         
         # sort for "Bestellstatus" first, then "Anmeldeddatum"
         # define custom order
@@ -442,12 +448,12 @@ class Dataframe:
         wanted_columns = [
             "Nachname",
             "Vorname",
+            "Geburtsdatum",
             "Ort",
-            "Notfall-Telefonnummer",
+            "Notfall-Telefonnummern",
             "E-Mail",
             "Rechnung - Adresse",
-            "Rechnung - Name",
-            "Rechnung - Firma",
+            "Rechnung - Empfänger",
         ]
         df = df.filter(wanted_columns)
         
@@ -459,24 +465,41 @@ class Dataframe:
         
         return df
     
-    def _get_permissions_df(self) -> pd.DataFrame:
-        """
-        Process debloated dataframe to create a sorted dataframe for permissions with required columns.
-        """
-
-        df = self.debloated_df.copy()
-
-        
-        return df
-    
     def _get_medical_info_df(self) -> pd.DataFrame:
         """
         Process debloated dataframe to create a sorted dataframe for medical information with required columns.
         """
 
-        df = self.debloated_df.copy()
-
+        df = self.attendees_df.copy()
         
+        # filter for columns and set their order
+        wanted_columns = [
+            "Nachname",
+            "Vorname",
+            "Geburtsdatum",
+            "Ort",
+            "Ernährung",
+            "Essensunverträglichkeiten",
+            "Medikamente",
+            "Medizinische Besonderheiten",
+            "Sonstiges",
+            "Verabreichung rezeptfreier Medikamente durch den Sani des Lagers",
+            "Splitter und Zecken dürfen vom Sani des Lagers entfernt werden",
+            "Tetanusimpfung",
+            "Krankenversicherung",
+            "Notfall-Telefonnummern",
+            "E-Mail",
+            "Rechnung - Adresse",
+            "Rechnung - Empfänger",
+        ]
+        df = df.filter(wanted_columns)
+        
+        # sort (by "Nachname" and then by "Vorname") and reset index numbers
+        df = df.sort_values(
+            by=["Nachname", "Vorname"], ascending=True
+        )
+        df.index = range(1, len(df) + 1)
+
         return df
     
     def _get_diet_info_df(self) -> pd.DataFrame:
@@ -484,9 +507,43 @@ class Dataframe:
         Process debloated dataframe to create a sorted dataframe for diet restrictions with required columns.
         """
 
-        df = self.debloated_df.copy()
-
+        df = self.attendees_df.copy()
         
+        # filter for columns and set their order
+        wanted_columns = [
+            "Nachname",
+            "Vorname",
+            "Geburtsdatum",
+            "Ort",
+            "Ernährung",
+            "Essensunverträglichkeiten",
+            "E-Mail",
+            "Rechnung - Empfänger",
+            "Notfall-Telefonnummern",
+            "Anmeldedatum",
+        ]
+        df = df.filter(wanted_columns)
+        
+        # print contact information only if "Essensunverträglichkeiten" is not empty
+        # create a mask: True if column contains real content (not empty, not just whitespace)
+        mask = df["Essensunverträglichkeiten"].fillna("").str.strip().ne("")
+
+        # columns to clear if no intolerance is given
+        columns_to_clear = [
+            "E-Mail",
+            "Anmeldedatum",
+            "Rechnung - Empfänger",
+            "Notfall-Telefonnummern",
+        ]
+        # set values to NaN where mask is False
+        df.loc[~mask, columns_to_clear] = pd.NA
+        
+        # sort (by "Nachname" and then by "Vorname") and reset index numbers
+        df = df.sort_values(
+            by=["Nachname", "Vorname"], ascending=True
+        )
+        df.index = range(1, len(df) + 1)
+
         return df
 
 class CustomMain(Main):
@@ -499,14 +556,13 @@ class CustomMain(Main):
         dataframe = Dataframe(self.success_on_last_run)
 
         # generate and upload excel file for raw data
-        self.upload(dataframe.raw_df, "Rohdaten", filterable=True)
+        self.upload(dataframe.raw_df, "Rohdaten", subdir="Unsortiert", filterable=True)
 
         # generate and upload excel file for all all debloated data 
-        self.upload(dataframe.debloated_df, "Alles", filterable=True)
+        self.upload(dataframe.debloated_df, "Alles", subdir="Unsortiert", filterable=True)
         
         # generate and upload excel file for all attendees
-        self.upload(dataframe.attendees_df, "Teilnehmerdaten", filterable=True)
-        
+        self.upload(dataframe.attendees_df, "Teilnehmerdaten", filterable=True, freeze_panes=(1,3))
         
         # generate and upload excel file for town-wise attendees
         for town in dataframe.town_dfs:
@@ -514,17 +570,23 @@ class CustomMain(Main):
             self.upload(df, town, subdir="Nach_Orten")
 
         # generate and upload excel file for numbers overview
-        self.upload(dataframe.numbers_overview, "Anmeldezahlen")
+        self.upload(dataframe.numbers_overview, "Anmeldezahlen", subdir="Nach_Orten")
         
         # generate and upload excel file for all orders
-        self.upload(dataframe.orders_df, "Bestellungen", filterable=True)
+        self.upload(dataframe.orders_df, "Bestellungen", subdir="Finanzen", filterable=True)
         
         # generate and upload excel file for all donations
-        self.upload(dataframe.donataions_df, "Spenden", filterable=True)
+        self.upload(dataframe.donataions_df, "Spenden", subdir="Finanzen", filterable=True)
         
         # generate and upload excel file for emergency contacts
-        self.upload(dataframe.contacts_df, "Notfallkontakte", filterable=True)
+        self.upload(dataframe.contacts_df, "Notfallkontakte", filterable=True, freeze_panes=(1,3))
 
+        # generate and upload excel file for medical information of attendees
+        self.upload(dataframe.medical_info_df, "Sani", filterable=True)
+        
+        # generate and upload excel file for diet information of attendees
+        self.upload(dataframe.diet_info_df, "Küche", filterable=True)
+        
         self.cloud.upload_last_updated()
         
         self.cloud.upload_docker_image_version()
