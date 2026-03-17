@@ -50,6 +50,8 @@ class Dataframe:
         self.sorted_df = self._get_sorted_df()
         self.town_dfs = self._get_town_dfs()
         self.numbers_overview = self._get_numbers_df()
+        self.diet_numbers_df = self._get_diet_numbers_df()
+        self.attendees_with_intolerances = self._get_attendees_with_intolerances()
 
 
     def _get_sorted_df(self) -> pd.DataFrame:
@@ -197,8 +199,75 @@ class Dataframe:
 
             # add row to numbers_df
             numbers_df.loc[town] = [town_kids, town_staff, town_total]
+            
+        logging.info("Cathegorized sorted data into numbers.")
 
         return numbers_df
+    
+    def _get_diet_numbers_df(self) -> pd.DataFrame:
+        """
+        Calculate and return a dataframe with counts of different dietary restrictions.
+        """
+
+        numbers_df = pd.DataFrame(
+            {"Ernährung": [], "Jungscharler": [], "Mitarbeiter": [], "Gesamt": []}
+        )
+
+        # make Ernährung the index
+        numbers_df = numbers_df.set_index("Ernährung")
+        
+        for i in ["Keine Besonderheiten", "Kein Schweinefleisch", "Vegetarisch", "Gesamt"]:
+
+            df = self.sorted_df.copy()
+            
+            # filter for current group
+            if i != "Gesamt":
+                df = df[df["Ernährung"].str.contains(i, na=False)]
+
+            number_of_kids = len(df[df["Art"].str.contains("Jungscharler", na=False)])
+            number_of_staff = len(df[df["Art"].str.contains("Mitarbeiter", na=False)])
+            number_total = len(df)
+
+            # add row to numbers_df
+            numbers_df.loc[i] = [number_of_kids, number_of_staff, number_total]
+            
+        logging.info("Cathegorized sorted data into dietary numbers.")
+
+        return numbers_df
+    
+    def _get_attendees_with_intolerances(self) -> pd.DataFrame:
+        """
+        Returns df with only the attendees with dietary intolerances.
+        """
+        df = self.sorted_df.copy()
+        
+        # sort for "Essensunverträglichkeiten" that are not empty
+        df = df[df["Essensunverträglichkeiten"].notna()]
+
+        # filter for columns and set their order
+        wanted_columns = [
+            "Nachname",
+            "Vorname",
+            "Ortschaft",
+            "Art",
+            "Telefonnummer",
+            "E-Mail",
+            "Ernährung",
+            "Essensunverträglichkeiten",
+            "Sonstiges",
+            "Anmeldedatum",
+        ]
+        df = df.filter(wanted_columns)
+        
+        # sort by "Nachname", then by "Vorname" and then by "Ortschaft" and reset index numbers
+        df = df.sort_values(
+            by=["Nachname", "Vorname", "Ortschaft"], ascending=True
+        )
+        df.index = range(1, len(df) + 1)
+        
+        logging.info("Filtered sorted data by intolerances.")
+        
+        return df
 
 
 class CustomMain(Main):
@@ -223,6 +292,12 @@ class CustomMain(Main):
 
         # generate and upload excel file for numbers overview
         self.upload(dataframe.numbers_overview, "Anmeldezahlen")
+        
+        # generate and upload excel file for diet numbers overview
+        self.upload(dataframe.diet_numbers_df, "Küche_Gesamtzahlen")
+
+        # generate and upload excel file for attendees with intolerances
+        self.upload(dataframe.attendees_with_intolerances, "Küche_Unverträglichkeiten")
 
         self.cloud.upload_last_updated()
         
