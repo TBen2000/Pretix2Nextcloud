@@ -1250,7 +1250,7 @@ class Main:
                 self.success_on_last_run = False
                 
             try:
-                self.cloud.upload_last_updated(error_message=e)
+                self.cloud.upload_last_updated(subdir=self.upload_dir_tech_details, error_message=e)
             except Exception as upload_error:
                 logging.error(upload_error)
                 
