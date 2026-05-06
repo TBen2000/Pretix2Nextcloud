@@ -1185,6 +1185,7 @@ class Main:
         self.cloud = Cloud()
 
         self.success_on_last_run = False
+        self.upload_dir_tech_details = ""  # upload directory for technical files like Last_updated.txt, error logs and docker image version info.
 
         level = Environment().get_logging_level()
 

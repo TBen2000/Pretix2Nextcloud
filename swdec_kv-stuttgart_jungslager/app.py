@@ -605,12 +605,14 @@ class CustomMain(Main):
         # generate and upload excel file for medical information of attendees
         self.upload(dataframe.medical_info_df, "Sani", filterable=True)
         
-        # generate and upload excel file for diet information of attendees
+                # generate and upload excel file for diet information of attendees
         self.upload(dataframe.diet_info_df, "Küche", filterable=True)
+
+        self.upload_dir_tech_details = "Technische_Details"  # set upload directory for technical files like Last_updated.txt, error logs and docker image version info.
         
-        self.cloud.upload_last_updated(subdir="Technische_Details")
+        self.cloud.upload_last_updated(subdir=self.upload_dir_tech_details)
         
-        self.cloud.upload_docker_image_version(subdir="Technische_Details")
+        self.cloud.upload_docker_image_version(subdir=self.upload_dir_tech_details)
 
 
 if __name__ == "__main__":
