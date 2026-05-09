@@ -591,7 +591,7 @@ class CustomMain(Main):
             self.upload(df, town, subdir="Zum_Teilen")
 
         # generate and upload excel file for numbers overview
-        self.upload(dataframe.numbers_overview, "Anmeldezahlen", subdir="Nach_Orten")
+        self.upload(dataframe.numbers_overview, "Anmeldezahlen")
         
         # generate and upload excel file for all orders
         self.upload(dataframe.orders_df, "Bestellungen", subdir="Finanzen", filterable=True)
