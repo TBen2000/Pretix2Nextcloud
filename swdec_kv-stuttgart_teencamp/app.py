@@ -119,6 +119,7 @@ class Dataframe:
         # replace "False" and "True in columns "Vegetarisch", "Laktosefrei" and "Glutenfrei" with "Nein" and "Ja"
         for col in ["Vegetarisch", "Laktosefrei", "Glutenfrei"]:
             df[col] = df[col].replace({False: "Nein", True: "Ja"})
+            df[col] = df[col].replace({"False": "Nein", "True": "Ja"})
         # add colum "Ernährung" based on "Vegetarisch", "Laktosefrei" and "Glutenfrei"
         df["Ernährung"] = df.apply(lambda row: ", ".join([col for col in ["Vegetarisch", "Laktosefrei", "Glutenfrei"] if row[col] == "Ja"]), axis=1)
         
