@@ -249,6 +249,7 @@ class Dataframe:
         wanted_columns = [
             "Nachname",
             "Vorname",
+            "Geschlecht",
             "Geburtsdatum",
             "Ernährung",
             "Essensunverträglichkeiten",
@@ -294,6 +295,7 @@ class Dataframe:
         wanted_columns = [
             "Nachname",
             "Vorname",
+            "Geschlecht",
             "Geburtsdatum",
             "Besucht Teenkreis",
             "Ort",
@@ -504,6 +506,7 @@ class Dataframe:
         wanted_columns = [
             "Nachname",
             "Vorname",
+            "Geschlecht",
             "Geburtsdatum",
             "Ort",
             "Ernährung",
@@ -541,22 +544,22 @@ class Dataframe:
         wanted_columns = [
             "Nachname",
             "Vorname",
+            "Geschlecht",
             "Geburtsdatum",
             "Ort",
-            "Vegetarisch",
-            "Laktosefrei",
-            "Glutenfrei",
+            "Ernährung",
             "Essensunverträglichkeiten",
+            "Medizinische Besonderheiten",
             "E-Mail",
             "Rechnung - Empfänger",
             "Notfall-Telefonnummern",
             "Anmeldedatum",
         ]
         df = df.filter(wanted_columns)
-        
-        # print contact information only if "Essensunverträglichkeiten" is not empty
+
+        # print contact information only if "Essensunverträglichkeiten" or "Ernährung" or "Medizinische Besonderheiten" is not empty
         # create a mask: True if column contains real content (not empty, not just whitespace)
-        mask = df["Essensunverträglichkeiten"].fillna("").str.strip().ne("")
+        mask = (df["Essensunverträglichkeiten"].fillna("").str.strip().ne("")) | (df["Ernährung"].fillna("").str.strip().ne("")) | (df["Medizinische Besonderheiten"].fillna("").str.strip().ne(""))
 
         # columns to clear if no intolerance is given
         columns_to_clear = [
