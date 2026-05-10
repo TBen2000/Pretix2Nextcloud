@@ -1,4 +1,4 @@
-# Customized Pretix2Nextcloud instance for kv-stuttgart-jungschartag
+# Customized Pretix2Nextcloud instance for kv-stuttgart-maedelslager
 # Needs P2N.py to function
 
 import pandas as pd
