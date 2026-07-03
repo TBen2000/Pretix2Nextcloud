@@ -130,7 +130,9 @@ class Dataframe:
             df["Ort"].fillna("").str.strip() + ortsteil_part + ", " +
             df["Land"].fillna("").str.strip()
         )
+        df["Adresse"] = df["Adresse"].str.replace(r"\s+", " ", regex=True).str.strip()
 
+        
         # rename values in "Bestellstatus" from acronyms to the complete meaning
         # rename values "c" to "storniert", "n" to "unbezahlt" und "p" to "bezahlt"
         df["Bestellstatus"] = df["Bestellstatus"].replace(
