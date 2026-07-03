@@ -173,8 +173,8 @@ class Dataframe:
         ]
         df[bool_columns] = df[bool_columns].replace(
             {
-                True: "Ja",
-                False: "Nein",
+                "True": "Ja",
+                "False": "Nein",
             }
         )
 
