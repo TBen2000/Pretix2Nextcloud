@@ -690,6 +690,11 @@ class PretixAPI:
                     "price": position["price"],
                     "attendee_firstname": attendee_firstname,
                     "attendee_lastname": attendee_lastname,
+                    "attendee_email": position.get("attendee_email", ""),
+                    "attendee_street": position.get("street", ""),
+                    "attendee_zipcode": position.get("zipcode", ""),
+                    "attendee_city": position.get("city", ""),
+                    "attendee_country": position.get("country", ""),
                 }
 
                 # answers for questions
