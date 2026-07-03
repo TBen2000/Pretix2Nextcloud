@@ -48,20 +48,16 @@ class Dataframe:
         # check for new fetched data and raise exception if no new data occured so that Main can skip this run
         pretix.check_for_new_fetched_data(self.raw_df, success_on_last_run)
         
-        #self.towns_list = pretix.get_answer_choices_from_question("Wir melden uns über folgenden Ort an")
-        #self.towns_list.remove("Keiner (ortsunabhängige Anmeldung)")
-        #self.towns_list.append("ortsunabhängig")
+        self.busstop_list = pretix.get_answer_choices_from_question("Zu-/Ausstieg")
 
-        #self.debloated_df = self._get_debloated_df()
-        #self.attendees_df = self._get_attendees_df()
-        #self.town_dfs = self._get_town_dfs()
-        #self.sharable_town_dfs = self._get_sharable_town_dfs()
-        #self.numbers_overview = self._get_numbers_df()
-        #self.orders_df = self._get_orders_df()
-        #self.donataions_df = self._get_donations_df()
-        #self.contacts_df = self._get_contacts_df()
-        #self.medical_info_df = self._get_medical_info_df()
-        #self.diet_info_df = self._get_diet_info_df()
+        self.debloated_df = self._get_debloated_df()
+        self.attendees_df = self._get_attendees_df()
+        self.busstop_dfs = self._get_busstop_dfs()
+        self.numbers_overview = self._get_numbers_df()
+        self.orders_df = self._get_orders_df()
+        self.contacts_df = self._get_contacts_df()
+        self.medical_info_df = self._get_medical_info_df()
+        self.diet_info_df = self._get_diet_info_df()
 
 
     def _get_debloated_df(self) -> pd.DataFrame:
@@ -79,26 +75,45 @@ class Dataframe:
             "email": "E-Mail",
             "total": "Gesamtpreis",
             "date": "Anmeldedatum",
-            "invoice_name": "Rechnung - Name",
-            "invoice_company": "Rechnung - Firma",
-            "invoice_street": "Rechnung - Straße",
-            "invoice_zipcode": "Rechnung - PLZ",
-            "invoice_city": "Rechnung - Stadt",
-            "invoice_country": "Rechnung - Land",
             "item_name": "Art",
             "price": "Preis",
             "attendee_firstname": "Vorname",
             "attendee_lastname": "Nachname",
-            "Gültige Tetanusimpfung vorhanden": "Tetanusimpfung",
-            "Geht Ihr Kind in eine Jungschar?": "Besucht Jungschar",
-            "Essensunverträglichkeiten": "Essensunverträglichkeiten Ja/Nein",
-            "Welche Unverträglichkeiten?": "Essensunverträglichkeiten",
-            "Welche Medikamente?": "Medikamente",
-            "Worauf muss außerdem besonders geachtet werden?": "Medizinische Besonderheiten",
-            "Zuschuss beantragen": "Zuschuss beantragt",
+            "Geburtsdatum": "Geburtsdatum",
+            "Ortsteil": "Ortsteil",
+            "Erreichbarkeit des/der Sorgeberechtigten": "Sorgeberechtigter",
+            "Verwandte/Freunde, die im Notfall weiterhelfen können - bitte Telefonnummer mit angeben!": "Verwandte/Freunde",
+            "Gesundheitsfürsorge - Krankenversicherung": "Krankenversicherung",
+            "Name der Krankenkasse und Versicherungsnummer": "Versicherungsnummer",
+            "Vor- und Nachname des/der Familienangehörigen, über den Ihr Kind versichert ist": "Versicherungsnehmer",
+            "Name und Adresse des Hausarztes": "Hausarzt",
+            "Ich stimme der Verabreichung rezeptfreier Medikamente zu": "Verabreichung rezeptfreier Medikamente",
+            "Mein Kind ist gegen Tetanus (Wundstarrkrampf) geimpft": "Tetanusimpfung",
+            "Letztes Impfdatum Tetanus:": "Impfdatum Tetanus",
+            "Mein Kind ist gegen FSME (Zecken) geimpft": "FSME Impfung",
+            "Letztes Impfdatum FSME:": "Impfdatum FSME",
+            "Ich bin damit einverstanden, dass ein:e Mitarbeiter:in eine Zecke bei meinem Kind entfernen darf": "Zecken entfernen",
+            "Mein Kind ernährt sich vegetarisch.": "Vegetarier",
+            "Mein Kind kann schwimmen und darf unter Aufsicht im Freibad oder See baden gehen:": "Schwimmerlaubnis",
+            "Mein Kind darf für Programmzwecke und für den Fall einer medizinischen Abklärung in einem privaten PKW mitfahren.": "Mitfahrerlaubnis",
+            "Zu-/Ausstieg": "Zu-/Ausstieg",
+            "Zuschussantrag": "Zuschussantrag",
+            "Einverständnis zur Verwendung von entstandenen Video- und Bildaufnahmen": "Bildrechte",
+            "Dürfen nach dem Lager Flyer/Einladungen an Ihr Kind verschickt werden?": "Erlaubnis für Einladungen",
+            "Mein Kind besucht folgende Jungschar": "Jungschar",
+            "Einverständniserklärung": "Einverständniserklärung",
+            "Zustimmung zu den AGBs": "Zustimmung AGBs",
+            "Medikamente - Name des Medikaments und Dosierung": "Medikamente",
+            "Medikamenteneinnahme": "Medikamenteneinnahme",
+            "Zeitpunkt Medikamentengabe": "Zeitpunkt Medikamentengabe",
+            "Worauf muss besonders geachtet werden?": "Medizinische Informationen",
+            "Was das Zeltlager-Leitungs-Team sonst noch wissen sollte:": "Sonstiges",
+            "Mein Kind hat folgende Lebensmittelunverträglichkeiten/ Essgewohnheiten": "Lebensmittelunverträglichkeiten",
         }
         df = df.rename(columns=renames)
         
+
+        """
         # combine "Rechnung - Name" and "Rechnung - Straße" to one column "Rechnung - Empfänger"
         name = df["Rechnung - Name"].fillna("").str.strip()
         company = df["Rechnung - Firma"].fillna("").str.strip()
@@ -114,45 +129,8 @@ class Dataframe:
             df["Rechnung - Stadt"].fillna("").str.strip() + ", " +
             df["Rechnung - Land"].fillna("").str.strip()
         )
-        
-        
-        # simplify values in column "Krankenversicherung"
-        # rename all values "Privat krankenversichert" to "privat" and all values "Gesetzlich krankenversichert (z.B. AOK)" to "gesetzlich":
-        df["Krankenversicherung"] = df["Krankenversicherung"].replace(
-            {
-                "Privat krankenversichert": "privat",
-                "Gesetzlich krankenversichert (z.B. AOK)": "gesetzlich",
-            }
-        )
-        
-        # simplify values in column "Einverständniserklärung"
-        # rename all values that conatain any text to "hochgeladen":
-        df.loc[
-            df["Einverständniserklärung"].notna() & 
-            (df["Einverständniserklärung"].astype(str).str.strip() != ""),
-            "Einverständniserklärung"
-        ] = "hochgeladen"
-       
-        # combine "Wo geht Ihr Kind in die Jungschar?" and "Wir melden uns über folgenden Ort an" and "Wir melden uns über folgenden Ort an (#2)" to "Ort"
-        col1 = "Wo geht Ihr Kind in die Jungschar?"
-        col2 = "Wir melden uns über folgenden Ort an"
-        col3 = "Wir melden uns über folgenden Ort an (#2)"
-        # Make sure columns exist (avoid KeyError)
-        for col in [col1, col2, col3]:
-            if col not in df.columns:
-                df[col] = pd.NA
-        # Condition: col1 usable (not empty, not NA, not "Sonstige")
-        use_col1 = (
-            df[col1].notna() &
-            (df[col1] != "") &
-            (df[col1] != "Sonstige")
-        )
-        # Build Ort column
-        df["Ort"] = df[col1].where(use_col1, df[col2])
-        df["Ort"] = df["Ort"].where(
-            df["Ort"].notna() & (df["Ort"] != ""),
-            df[col3]
-        )
+        """
+
         
         # rename values in "Bestellstatus" from acronyms to the complete meaning
         # rename values "c" to "storniert", "n" to "unbezahlt" und "p" to "bezahlt"
@@ -166,36 +144,8 @@ class Dataframe:
         
         
         # filter for columns and set their order
-        wanted_columns = [
-            "Bestellnummer",
-            "Bestellstatus",
-            "E-Mail",
-            "Gesamtpreis",
-            "Anmeldedatum",
-            "Rechnung - Empfänger",
-            "Rechnung - Adresse",
-            "Art",
-            "Preis",
-            "Vorname",
-            "Nachname",
-            "Geburtsdatum",
-            "Ernährung",
-            "Essensunverträglichkeiten",
-            "Tetanusimpfung",
-            "Krankenversicherung",
-            "Splitter und Zecken dürfen vom Sani des Lagers entfernt werden",
-            "Verabreichung rezeptfreier Medikamente durch den Sani des Lagers",
-            "Medikamente",
-            "Medizinische Besonderheiten",
-            "Notfall-Telefonnummern",
-            "T-Shirt Größe",
-            "Schwimmer",
-            "Besucht Jungschar",
-            "Ort",
-            "Sonstiges",
-            "Zuschuss beantragt",
-            "Einverständniserklärung",
-        ]
+        # get wanted columns from the renames dictionary and add the following columns to the end of the list
+        wanted_columns = list(renames.values())
         df = df.filter(wanted_columns)
 
         # change date format
@@ -204,9 +154,30 @@ class Dataframe:
             .dt.tz_convert(self.time_zone)
             .dt.strftime("%Y-%m-%d %H:%M")
         )
+
         
-        # change all values "Keiner (ortsunabhängige Anmeldung)" in column "Ort" to "ortsunanhängig"
-        df["Ort"] = df["Ort"].replace("Keiner (ortsunabhängige Anmeldung)", "ortsunabhängig")
+        # replace boolean values with "Ja" and "Nein"
+        bool_columns = [
+            "Verabreichung rezeptfreier Medikamente",
+            "Tetanusimpfung",
+            "FSME Impfung",
+            "Zecken entfernen",
+            "Vegetarier",
+            "Schwimmerlaubnis",
+            "Mitfahrerlaubnis",
+            "Zuschussantrag",
+            "Bildrechte",
+            "Erlaubnis für Einladungen",
+            "Einverständniserklärung",
+            "Zustimmung AGBs",
+        ]
+        df[bool_columns] = df[bool_columns].replace(
+            {
+                True: "Ja",
+                False: "Nein",
+            }
+        )
+
         
         # strip leading/trailing whitespace from all string values in df
         str_cols = df.select_dtypes(include=["object", "string"]).columns
@@ -227,9 +198,6 @@ class Dataframe:
         """
 
         df = self.debloated_df.copy()
-        
-        # remove all donation entries (entries with "Spende Zeltlagerarbeit" in column "Art")
-        df = df[df["Art"] != "Spende Zeltlagerarbeit"]
 
         # removed all cancelled registrations
         df = df[df["Bestellstatus"] != "storniert"]
@@ -239,27 +207,36 @@ class Dataframe:
             "Nachname",
             "Vorname",
             "Geburtsdatum",
-            "Ernährung",
-            "Essensunverträglichkeiten",
-            "Tetanusimpfung",
+            "Ortsteil",
+            "E-Mail",
+            "Sorgeberechtigter",
+            "Verwandte/Freunde",
             "Krankenversicherung",
-            "Splitter und Zecken dürfen vom Sani des Lagers entfernt werden",
-            "Verabreichung rezeptfreier Medikamente durch den Sani des Lagers",
+            "Versicherungsnummer",
+            "Versicherungsnehmer",
+            "Hausarzt",
+            "Verabreichung rezeptfreier Medikamente",
+            "Tetanusimpfung",
+            "Impfdatum Tetanus",
+            "FSME Impfung",
+            "Impfdatum FSME",
+            "Zecken entfernen",
             "Medikamente",
-            "Medizinische Besonderheiten",
-            "Notfall-Telefonnummern",
-            "T-Shirt Größe",
-            "Schwimmer",
-            "Besucht Jungschar",
-            "Ort",
+            "Medikamenteneinnahme",
+            "Zeitpunkt Medikamentengabe",
+            "Medizinische Informationen",
             "Sonstiges",
-            "Zuschuss beantragt",
-            "Einverständniserklärung",
+            "Vegetarier",
+            "Lebensmittelunverträglichkeiten",
+            "Schwimmerlaubnis",
+            "Mitfahrerlaubnis",
+            "Zu-/Ausstieg",
+            "Zuschussantrag",
+            "Bildrechte",
+            "Erlaubnis für Einladungen",
+            "Jungschar",
             "Bestellnummer",
             "Anmeldedatum",
-            "E-Mail",
-            "Rechnung - Empfänger",
-            "Rechnung - Adresse",
         ]
         df = df.filter(wanted_columns)
 
@@ -273,22 +250,21 @@ class Dataframe:
 
         return df
 
-    def _get_town_dfs(self) -> dict[str, pd.DataFrame]:
+    def _get_busstop_dfs(self) -> dict[str, pd.DataFrame]:
         """
-        Process sorted dataframe for attendees to create a dictionary of dataframes filtered by town.
+        Process sorted dataframe for attendees to create a dictionary of dataframes filtered by busstop.
         """
 
-        df = self.attendees_df.copy()
+        df = self.debloated_df.copy()
 
         # filter for columns and set their order
         wanted_columns = [
             "Nachname",
             "Vorname",
             "Geburtsdatum",
-            "Besucht Jungschar",
-            "Ort",
-            "Sonstiges",
+            "Zu-/Ausstieg",
             "Anmeldedatum",
+            "Bestellnummer",
         ]
         df = df.filter(wanted_columns)
         
@@ -297,58 +273,46 @@ class Dataframe:
             by=["Nachname", "Vorname"], ascending=True
         )
 
-        # sort by town:
-        df_by_town_dict = {}
-        df_towns = (df["Ort"].dropna().astype(str).str.strip().unique())
-        towns = sorted(set(self.towns_list) | set(df_towns))
-        for town in towns:
-            # filter by town, drop column "Ort" and reset index numbers
-            town_df = df[df["Ort"] == town]
-            town_df = town_df.drop(columns=["Ort"])
-            town_df.index = range(1, len(town_df) + 1)
+        # sort by busstop:
+        df_by_busstop_dict = {}
+        df_busstops = (df["Zu-/Ausstieg"].dropna().astype(str).str.strip().unique())
+        busstops = sorted(set(self.busstop_list) | set(df_busstops))
+        for busstop in busstops:
+            # filter by busstop, drop column "Zu-/Ausstieg" and reset index numbers
+            busstop_df = df[df["Zu-/Ausstieg"] == busstop]
+            busstop_df = busstop_df.drop(columns=["Zu-/Ausstieg"])
+            busstop_df.index = range(1, len(busstop_df) + 1)
 
-            df_by_town_dict[town] = town_df
+            df_by_busstop_dict[busstop] = busstop_df
 
-        logging.info("Filtered attendees data by town.")
+        logging.info("Filtered attendees data by busstop.")
 
-        return df_by_town_dict
-    
-    def _get_sharable_town_dfs(self) -> dict[str, pd.DataFrame]:
-        """
-        Process sorted dataframe for attendees to create a dictionary of dataframes filtered by town without the column "Sonstiges".
-        """
-        new_dfs = {}
-        
-        for town, town_df in self.town_dfs.items():
-            df = town_df.copy()
-            df = df.drop(columns=["Sonstiges"])
-            new_dfs[town] = df
-            
-        return new_dfs
+        return df_by_busstop_dict
+
 
     def _get_numbers_df(self) -> pd.DataFrame:
         """
-        Calculate and return a dataframe with counts attendees by town.
+        Calculate and return a dataframe with counts attendees by busstop.
         """
 
         numbers_df = pd.DataFrame(
-            {"Ort": [], "Anmeldungen": []}
+            {"Zu-/Ausstieg": [], "Anmeldungen": []}
         )
 
-        # make Ortschaft the index
-        numbers_df = numbers_df.set_index("Ort")
+        # make busstop the index
+        numbers_df = numbers_df.set_index("Zu-/Ausstieg")
 
-        df = self.attendees_df
+        df = self.debloated_df
 
         # add row to numbers_df
         numbers_df.loc["GESAMT"] = [len(df)]
 
-        # filter by town:
-        for town in self.towns_list:
-            town_df = df[df["Ort"] == town]
+        # filter by busstop:
+        for busstop in self.busstop_list:
+            busstop_df = df[df["Zu-/Ausstieg"] == busstop]
 
             # add row to numbers_df
-            numbers_df.loc[town] = [len(town_df)]
+            numbers_df.loc[busstop] = [len(busstop_df)]
 
         return numbers_df
     
@@ -366,18 +330,16 @@ class Dataframe:
             "E-Mail",
             "Gesamtpreis",
             "Anmeldedatum",
-            "Rechnung - Empfänger",
-            "Rechnung - Adresse",
-            "Zuschuss beantragt",
+            "Zuschussantrag",
         ]
         df = df.filter(wanted_columns)
         
-        # combine rows with same Bestellnummer (every entry with the same "Bestellnummer" has the same values for all the other columns. Differences in "Zuschuss beantragt" will always be combined to "Ja")
+        # combine rows with same Bestellnummer (every entry with the same "Bestellnummer" has the same values for all the other columns. Differences in "Zuschussantrag" will always be combined to "Ja")
         df = (
             df.groupby("Bestellnummer", as_index=False)
             .agg({
-                **{col: "first" for col in df.columns if col != "Zuschuss beantragt"},
-                "Zuschuss beantragt": lambda x: "Ja" if (x == "Ja").any() else "Nein"
+                **{col: "first" for col in df.columns if col != "Zuschussantrag"},
+                "Zuschussantrag": lambda x: "Ja" if (x == "Ja").any() else "Nein"
             })
         )
         
@@ -408,53 +370,6 @@ class Dataframe:
         
         return df
     
-    def _get_donations_df(self) -> pd.DataFrame:
-        """
-        Process debloated dataframe to create a sorted dataframe for donations with required columns.
-        """
-        
-        df = self.debloated_df.copy()
-        
-        # filter for "Spende Zeltlagerarbeit" in column "Art"
-        df = df[df["Art"] == "Spende Zeltlagerarbeit"]
-        
-        # filter for columns and set their order
-        wanted_columns = [
-            "Art",
-            "Preis",
-            "Bestellstatus",
-            "Anmeldedatum",
-            "E-Mail",
-            "Rechnung - Empfänger",
-            "Rechnung - Adresse",
-            "Bestellnummer",
-            "Zuschuss beantragt",
-        ]
-        df = df.filter(wanted_columns)        
-        
-        # sort for "Bestellstatus" first, then "Anmeldeddatum"
-        # define custom order
-        status_order = {
-            "unbezahlt": 0,
-            "bezahlt": 1,
-            "storniert": 2,
-        }
-
-        df["_status_sort"] = df["Bestellstatus"].map(status_order)
-
-        df = (
-            df.sort_values(
-                by=["_status_sort", "Anmeldedatum"],
-                ascending=[True, True],
-                na_position="last",
-            )
-            .drop(columns="_status_sort")
-        )
-        
-        # reset index numbers
-        df.index = range(1, len(df) + 1)
-        
-        return df
     
     def _get_contacts_df(self) -> pd.DataFrame:
         """
@@ -467,11 +382,13 @@ class Dataframe:
             "Nachname",
             "Vorname",
             "Geburtsdatum",
-            "Ort",
-            "Notfall-Telefonnummern",
             "E-Mail",
-            "Rechnung - Adresse",
-            "Rechnung - Empfänger",
+            "Sorgeberechtigter",
+            "Verwandte/Freunde",
+            "Hausarzt",
+            "Krankenversicherung",
+            "Versicherungsnummer",
+            "Versicherungsnehmer",
         ]
         df = df.filter(wanted_columns)
         
@@ -492,23 +409,31 @@ class Dataframe:
         
         # filter for columns and set their order
         wanted_columns = [
+            "E-Mail",
             "Nachname",
             "Vorname",
             "Geburtsdatum",
-            "Ort",
-            "Ernährung",
-            "Essensunverträglichkeiten",
             "Medikamente",
-            "Medizinische Besonderheiten",
+            "Medikamenteneinnahme",
+            "Zeitpunkt Medikamentengabe",
+            "Medizinische Informationen",
             "Sonstiges",
-            "Verabreichung rezeptfreier Medikamente durch den Sani des Lagers",
-            "Splitter und Zecken dürfen vom Sani des Lagers entfernt werden",
+            "Lebensmittelunverträglichkeiten",
+            "Verabreichung rezeptfreier Medikamente",
             "Tetanusimpfung",
+            "Impfdatum Tetanus",
+            "FSME Impfung",
+            "Impfdatum FSME",
+            "Zecken entfernen",
+            "Ortsteil",
+            "Sorgeberechtigter",
+            "Verwandte/Freunde",
             "Krankenversicherung",
-            "Notfall-Telefonnummern",
-            "E-Mail",
-            "Rechnung - Adresse",
-            "Rechnung - Empfänger",
+            "Versicherungsnummer",
+            "Versicherungsnehmer",
+            "Hausarzt",
+            "Mitfahrerlaubnis",
+           
         ]
         df = df.filter(wanted_columns)
         
@@ -532,26 +457,23 @@ class Dataframe:
             "Nachname",
             "Vorname",
             "Geburtsdatum",
-            "Ort",
-            "Ernährung",
-            "Essensunverträglichkeiten",
+            "Vegetarier",
+            "Lebensmittelunverträglichkeiten",
             "E-Mail",
-            "Rechnung - Empfänger",
-            "Notfall-Telefonnummern",
+            "Sorgeberechtigter",
             "Anmeldedatum",
         ]
         df = df.filter(wanted_columns)
         
-        # print contact information only if "Essensunverträglichkeiten" is not empty
+        # print contact information only if "Lebensmittelunverträglichkeiten" is not empty
         # create a mask: True if column contains real content (not empty, not just whitespace)
-        mask = df["Essensunverträglichkeiten"].fillna("").str.strip().ne("")
+        mask = df["Lebensmittelunverträglichkeiten"].fillna("").str.strip().ne("")
 
         # columns to clear if no intolerance is given
         columns_to_clear = [
             "E-Mail",
             "Anmeldedatum",
-            "Rechnung - Empfänger",
-            "Notfall-Telefonnummern",
+            "Sorgeberechtigter",
         ]
         # set values to NaN where mask is False
         df.loc[~mask, columns_to_clear] = pd.NA
@@ -569,6 +491,8 @@ class CustomMain(Main):
         """
         Main function to generate Excel files and upload them to Nextcloud.
         """
+
+        self.upload_dir_tech_details = "Technische_Details"  # set upload directory for technical files like Last_updated.txt, error logs and docker image version info.
         
         # fetch and sort data
         dataframe = Dataframe(self.success_on_last_run)
@@ -576,8 +500,6 @@ class CustomMain(Main):
         # generate and upload excel file for raw data
         self.upload(dataframe.raw_df, "Rohdaten", subdir="Unsortiert", filterable=True)
 
-
-        """
         # generate and upload excel file for all all debloated data 
         self.upload(dataframe.debloated_df, "Alles", subdir="Unsortiert", filterable=True)
         
@@ -585,21 +507,14 @@ class CustomMain(Main):
         self.upload(dataframe.attendees_df, "Teilnehmerdaten", filterable=True, freeze_panes=(1,3))
         
         # generate and upload excel file for town-wise attendees
-        for town, df in dataframe.town_dfs.items():
-            self.upload(df, town, subdir="Nach_Orten", filterable=True)
-            
-        # generate and upload excel file for town-wise attendees
-        for town, df in dataframe.sharable_town_dfs.items():
-            self.upload(df, town, subdir="Zum_Teilen")
+        for busstop, df in dataframe.busstop_dfs.items():
+            self.upload(df, busstop, subdir="Nach_Orten", filterable=True)
 
         # generate and upload excel file for numbers overview
         self.upload(dataframe.numbers_overview, "Anmeldezahlen")
         
         # generate and upload excel file for all orders
         self.upload(dataframe.orders_df, "Bestellungen", subdir="Finanzen", filterable=True)
-        
-        # generate and upload excel file for all donations
-        self.upload(dataframe.donataions_df, "Spenden", subdir="Finanzen", filterable=True)
         
         # generate and upload excel file for emergency contacts
         self.upload(dataframe.contacts_df, "Notfallkontakte", filterable=True, freeze_panes=(1,3))
@@ -609,9 +524,6 @@ class CustomMain(Main):
         
         # generate and upload excel file for diet information of attendees
         self.upload(dataframe.diet_info_df, "Küche", filterable=True)
-        """
-
-        self.upload_dir_tech_details = "Technische_Details"  # set upload directory for technical files like Last_updated.txt, error logs and docker image version info.
         
         self.cloud.upload_last_updated(subdir=self.upload_dir_tech_details)
         
