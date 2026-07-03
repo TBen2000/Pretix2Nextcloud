@@ -122,11 +122,11 @@ class Dataframe:
 
         # combine "Straße", "PLZ", "Ort", Ortsteil and "Land" to "Adresse"
         df["Adresse"] = (
-            df["Rechnung - Straße"].fillna("").str.strip() + ", " +
-            df["Rechnung - PLZ"].fillna("").str.strip() + " " +
-            df["Rechnung - Stadt"].fillna("").str.strip() + " (" +
-            df["Rechnung - Ortsteil"].fillna("").str.strip() + "), " +
-            df["Rechnung - Land"].fillna("").str.strip()
+            df["Straße"].fillna("").str.strip() + ", " +
+            df["PLZ"].fillna("").str.strip() + " " +
+            df["Ort"].fillna("").str.strip() + " (" +
+            df["Ortsteil"].fillna("").str.strip() + "), " +
+            df["Land"].fillna("").str.strip()
         )
 
         # rename values in "Bestellstatus" from acronyms to the complete meaning
