@@ -80,7 +80,11 @@ class Dataframe:
             "attendee_firstname": "Vorname",
             "attendee_lastname": "Nachname",
             "Geburtsdatum": "Geburtsdatum",
+            "attendee_street": "Straße",
+            "attendee_zipcode": "PLZ",
+            "attendee_city": "Ort",
             "Ortsteil": "Ortsteil",
+            "attendee_country": "Land",
             "Erreichbarkeit des/der Sorgeberechtigten": "Sorgeberechtigter",
             "Verwandte/Freunde, die im Notfall weiterhelfen können - bitte Telefonnummer mit angeben!": "Verwandte/Freunde",
             "Gesundheitsfürsorge - Krankenversicherung": "Krankenversicherung",
@@ -110,28 +114,21 @@ class Dataframe:
             "Was das Zeltlager-Leitungs-Team sonst noch wissen sollte:": "Sonstiges",
             "Mein Kind hat folgende Lebensmittelunverträglichkeiten/ Essgewohnheiten": "Lebensmittelunverträglichkeiten",
         }
-        df = df.rename(columns=renames)
+        df = df.rename(columns=renames)        
         
+        # filter for columns
+        wanted_columns = list(renames.values())
+        df = df.filter(wanted_columns)
 
-        """
-        # combine "Rechnung - Name" and "Rechnung - Straße" to one column "Rechnung - Empfänger"
-        name = df["Rechnung - Name"].fillna("").str.strip()
-        company = df["Rechnung - Firma"].fillna("").str.strip()
-        df["Rechnung - Empfänger"] = (
-            name.where(name.eq("") | company.eq(""), name + " (" + company + ")")
-                .where(~name.eq(""), company)
-        )
-        
-        # combine "Rechnung - Straße", "Rechnung - PLZ", "Rechnung - Stadt" and "Rechnung - Land" to "Rechnung - Adresse"
-        df["Rechnung - Adresse"] = (
+        # combine "Straße", "PLZ", "Ort", Ortsteil and "Land" to "Adresse"
+        df["Adresse"] = (
             df["Rechnung - Straße"].fillna("").str.strip() + ", " +
             df["Rechnung - PLZ"].fillna("").str.strip() + " " +
-            df["Rechnung - Stadt"].fillna("").str.strip() + ", " +
+            df["Rechnung - Stadt"].fillna("").str.strip() + " (" +
+            df["Rechnung - Ortsteil"].fillna("").str.strip() + "), " +
             df["Rechnung - Land"].fillna("").str.strip()
         )
-        """
 
-        
         # rename values in "Bestellstatus" from acronyms to the complete meaning
         # rename values "c" to "storniert", "n" to "unbezahlt" und "p" to "bezahlt"
         df["Bestellstatus"] = df["Bestellstatus"].replace(
@@ -141,12 +138,6 @@ class Dataframe:
                 "p": "bezahlt",
             }
         )
-        
-        
-        # filter for columns and set their order
-        # get wanted columns from the renames dictionary and add the following columns to the end of the list
-        wanted_columns = list(renames.values())
-        df = df.filter(wanted_columns)
 
         # change date format
         df["Anmeldedatum"] = (
@@ -207,7 +198,7 @@ class Dataframe:
             "Nachname",
             "Vorname",
             "Geburtsdatum",
-            "Ortsteil",
+            "Adresse",
             "E-Mail",
             "Sorgeberechtigter",
             "Verwandte/Freunde",
@@ -381,6 +372,7 @@ class Dataframe:
             "Nachname",
             "Vorname",
             "Geburtsdatum",
+            "Adresse",
             "E-Mail",
             "Sorgeberechtigter",
             "Verwandte/Freunde",
@@ -432,7 +424,7 @@ class Dataframe:
             "Versicherungsnehmer",
             "Hausarzt",
             "Mitfahrerlaubnis",
-           
+            "Adresse"
         ]
         df = df.filter(wanted_columns)
         
