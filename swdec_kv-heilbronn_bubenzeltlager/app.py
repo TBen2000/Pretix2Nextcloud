@@ -121,11 +121,13 @@ class Dataframe:
         df = df.filter(wanted_columns)
 
         # combine "Straße", "PLZ", "Ort", Ortsteil and "Land" to "Adresse"
+        ortsteil = df["Ortsteil"].fillna("").str.strip()
+        ortsteil_part = ortsteil.apply(lambda x: f" ({x})" if x else "")
+
         df["Adresse"] = (
             df["Straße"].fillna("").str.strip() + ", " +
             df["PLZ"].fillna("").str.strip() + " " +
-            df["Ort"].fillna("").str.strip() + " (" +
-            df["Ortsteil"].fillna("").str.strip() + "), " +
+            df["Ort"].fillna("").str.strip() + ortsteil_part + ", " +
             df["Land"].fillna("").str.strip()
         )
 
