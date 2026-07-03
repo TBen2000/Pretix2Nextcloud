@@ -408,7 +408,6 @@ class Dataframe:
         
         # filter for columns and set their order
         wanted_columns = [
-            "E-Mail",
             "Nachname",
             "Vorname",
             "Geburtsdatum",
@@ -425,6 +424,7 @@ class Dataframe:
             "Impfdatum FSME",
             "Zecken entfernen",
             "Ortsteil",
+            "E-Mail",
             "Sorgeberechtigter",
             "Verwandte/Freunde",
             "Krankenversicherung",
