@@ -264,7 +264,6 @@ class Dataframe:
             "Geburtsdatum",
             "Zu-/Ausstieg",
             "Anmeldedatum",
-            "Bestellnummer",
         ]
         df = df.filter(wanted_columns)
         
