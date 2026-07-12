@@ -29,7 +29,7 @@ jobs:
             global:
               - 'P2N.py'
               - 'requirements.txt'
-              - '.github/workflows/publish-ghcr.yaml'
+              # - '.github/workflows/publish-ghcr.yaml'  # (uncomment if you want to trigger on workflow changes)
             swdec-kvstuttgart-jungschartag:
               - 'swdec_kv-stuttgart_jungschartag/**'
             swdec-kvstuttgart-teencamp:
