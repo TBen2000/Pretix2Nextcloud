@@ -40,6 +40,8 @@ jobs:
               - 'swdec_kv-stuttgart_maedelslager/**'
             swdec-kvheilbronn-bubenzeltlager:
               - 'swdec_kv-heilbronn_bubenzeltlager/**'
+            swdec-kvheilbronn-maedchenzeltlager:
+              - 'swdec_kv-heilbronn_maedchenzeltlager/**'
 
       - name: Generate Matrix
         id: set-matrix
@@ -56,7 +58,8 @@ jobs:
             { "id": "swdec-kvstuttgart-teencamp",     "folder": "swdec_kv-stuttgart_teencamp"     },
             { "id": "swdec-kvstuttgart-jungslager",   "folder": "swdec_kv-stuttgart_jungslager"   },
             { "id": "swdec-kvstuttgart-maedelslager", "folder": "swdec_kv-stuttgart_maedelslager" },
-            { "id": "swdec-kvheilbronn-bubenzeltlager", "folder": "swdec_kv-heilbronn_bubenzeltlager" }
+            { "id": "swdec-kvheilbronn-bubenzeltlager", "folder": "swdec_kv-heilbronn_bubenzeltlager" },
+            { "id": "swdec-kvheilbronn-maedchenzeltlager", "folder": "swdec_kv-heilbronn_maedchenzeltlager" },
           ]
 
           # Safely load data from environment variable. If the paths-filter step was skipped (e.g. manual dispatch), 
