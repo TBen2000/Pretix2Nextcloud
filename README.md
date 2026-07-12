@@ -70,7 +70,7 @@ Run the desired Docker image with one of the following commands:
 #### For SWDEC - KV Stuttgart - Jungschartag:
 
     docker run -d \
-    --name p2n-swdec-kvstuttgart-jungschartag \
+    --name p2n-kvstuttgart-jungschartag \
     --restart unless-stopped \
     --env-file .env \
     ghcr.io/tben2000/p2n-swdec-kvstuttgart-jungschartag:latest
@@ -78,7 +78,7 @@ Run the desired Docker image with one of the following commands:
 #### For SWDEC - KV Stuttgart - Teencamp:
 
     docker run -d \
-    --name p2n-swdec-kvstuttgart-teencamp \
+    --name p2n-kvstuttgart-teencamp \
     --restart unless-stopped \
     --env-file .env \
     ghcr.io/tben2000/p2n-swdec-kvstuttgart-teencamp:latest
@@ -86,7 +86,7 @@ Run the desired Docker image with one of the following commands:
 #### For SWDEC - KV Stuttgart - Zeltlager Jungs:
 
     docker run -d \
-    --name p2n-swdec-kvstuttgart-jungslager \
+    --name p2n-kvstuttgart-jungslager \
     --restart unless-stopped \
     --env-file .env \
     ghcr.io/tben2000/p2n-swdec-kvstuttgart-jungslager:latest
@@ -94,10 +94,26 @@ Run the desired Docker image with one of the following commands:
 #### For SWDEC - KV Stuttgart - Zeltlager Mädels:
 
     docker run -d \
-    --name p2n-swdec-kvstuttgart-maedelslager \
+    --name p2n-kvstuttgart-maedelslager \
     --restart unless-stopped \
     --env-file .env \
     ghcr.io/tben2000/p2n-swdec-kvstuttgart-maedelslager:latest
+
+#### For SWDEC - KV Heilbronn - Bubenzeltlager:
+
+    docker run -d \
+    --name p2n-kvheilbronn-bubenzeltlager \
+    --restart unless-stopped \
+    --env-file .env \
+    ghcr.io/tben2000/p2n-swdec-kvheilbronn-bubenzeltlager:latest
+
+#### For SWDEC - KV Heilbronn - Mädchenzeltlager:
+
+    docker run -d \
+    --name p2n-kvheilbronn-maedchenzeltlager \
+    --restart unless-stopped \
+    --env-file .env \
+    ghcr.io/tben2000/p2n-swdec-kvheilbronn-maedchenzeltlager:latest
 
 <br>
 
