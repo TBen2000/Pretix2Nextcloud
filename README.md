@@ -47,16 +47,16 @@ If you want to encode your environment variables with base64, you need to use th
 #### _More variables (optionally):_
 You can also add following optional environment variables if you need to customize the behavior apart from the defaults (_normally not necessary_):
 
-| environment variable    | default value                |
-| ----------------------- | ---------------------------- |
-| `PRETIX_ORGANIZER_SLUG` | `kv-stuttgart / kvheilbronn` |
-| `PRETIX_URL`            | `https://tickets.swdec.de`   |
-| `NEXTCLOUD_URL`         | `https://jcloud.swdec.de`    |
-| `TZ`                    | `Europe/Berlin`              |
-| `RUN_ONCE`              | `false`                      |
-| `INTERVAL_MINUTES`      | `15`                         |
-| `CHECK_INTERVAL_SECONDS`| `60`                         |
-| `LOGGING_LEVEL`         | `INFO`                       |
+| environment variable    | default value                  |
+| ----------------------- | ------------------------------ |
+| `PRETIX_ORGANIZER_SLUG` | `kv-stuttgart` / `kvheilbronn` |
+| `PRETIX_URL`            | `https://tickets.swdec.de`     |
+| `NEXTCLOUD_URL`         | `https://jcloud.swdec.de`      |
+| `TZ`                    | `Europe/Berlin`                |
+| `RUN_ONCE`              | `false`                        |
+| `INTERVAL_MINUTES`      | `15`                           |
+| `CHECK_INTERVAL_SECONDS`| `60`                           |
+| `LOGGING_LEVEL`         | `INFO`                         |
 
 `INTERVAL_MINUTES` defines how long the tool waits between two runs. `CHECK_INTERVAL_SECONDS` defines how often the tool checks if it's time to run again. Both are only relevant if `RUN_ONCE` is set to `false`.
 
