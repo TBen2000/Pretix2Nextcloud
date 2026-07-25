@@ -98,7 +98,7 @@ class Dataframe:
             "Letztes Impfdatum FSME:": "Impfdatum FSME",
             "Ich bin damit einverstanden, dass ein:e Mitarbeiter:in eine Zecke bei meinem Kind entfernen darf": "Zecken entfernen",
             "Mein Kind ernährt sich vegetarisch.": "Vegetarier",
-            "Mein Kind kann schwimmen und darf unter Aufsicht im Freibad oder See baden gehen:": "Schwimmerlaubnis",
+            "Mein Kind kann schwimmen und darf unter Aufsicht im Freibad oder See baden gehen.": "Schwimmerlaubnis",
             "Mein Kind darf für Programmzwecke und für den Fall einer medizinischen Abklärung in einem privaten PKW mitfahren.": "Mitfahrerlaubnis",
             "Zu-/Ausstieg": "Zu-/Ausstieg",
             "Zuschussantrag": "Zuschussantrag",
