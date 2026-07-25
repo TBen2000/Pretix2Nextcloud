@@ -112,7 +112,7 @@ class Dataframe:
             "Zeitpunkt Medikamentengabe": "Zeitpunkt Medikamentengabe",
             "Worauf muss besonders geachtet werden?": "Medizinische Informationen",
             "Was das Zeltlager-Leitungs-Team sonst noch wissen sollte:": "Sonstiges",
-            "Mein Kind hat folgende Lebensmittelunverträglichkeiten/ Essgewohnheiten": "Lebensmittelunverträglichkeiten",
+            "Mein Kind hat folgende Lebensmittelunverträglichkeiten / Essgewohnheiten": "Lebensmittelunverträglichkeiten",
         }
         df = df.rename(columns=renames)        
         
