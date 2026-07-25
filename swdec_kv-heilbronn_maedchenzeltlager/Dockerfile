@@ -3,13 +3,13 @@
 FROM python:3.12-slim
 
 LABEL org.opencontainers.image.source=https://github.com/TBen2000/Pretix2Nextcloud
-LABEL org.opencontainers.image.description="Pretix2Nextcloud || SWD-EC - KV Heilbronn - Bubenzeltlager"
+LABEL org.opencontainers.image.description="Pretix2Nextcloud || SWD-EC - KV Heilbronn - Mädchenzeltlager"
 LABEL org.opencontainers.image.licenses=MIT
 
 WORKDIR /app
 
 COPY requirements.txt .
-COPY swdec_kv-heilbronn_bubenzeltlager/app.py .
+COPY swdec_kv-heilbronn_maedchenzeltlager/app.py .
 COPY P2N.py .
 
 RUN python -m venv /app/venv
