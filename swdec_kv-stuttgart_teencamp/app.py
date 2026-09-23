@@ -549,9 +549,9 @@ class Dataframe:
         ]
         df = df.filter(wanted_columns)
 
-        # print contact information only if "Essensunverträglichkeiten" or "Ernährung" or "Medizinische Besonderheiten" is not empty
+        # print contact information only if "Essensunverträglichkeiten" is not empty
         # create a mask: True if column contains real content (not empty, not just whitespace)
-        mask = (df["Essensunverträglichkeiten"].fillna("").str.strip().ne("")) | (df["Ernährung"].fillna("").str.strip().ne("")) | (df["Medizinische Besonderheiten"].fillna("").str.strip().ne(""))
+        mask = df["Essensunverträglichkeiten"].fillna("").str.strip().ne("")
 
         # columns to clear if no intolerance is given
         columns_to_clear = [
