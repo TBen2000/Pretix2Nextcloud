@@ -50,7 +50,7 @@ class Dataframe:
         
         self.towns_list = pretix.get_answer_choices_from_question("EC-Jugendarbeit")
         self.towns_list = [town.replace("EC-Jugendarbeit ", "") for town in self.towns_list]
-        self.towns_list.remove("Sonstige Jugendarbeit")
+        self.towns_list.remove("sonstige Jugendarbeit")
         self.towns_list.append("Sonstige")
 
         self.debloated_df = self._get_debloated_df()
@@ -133,8 +133,8 @@ class Dataframe:
             .dt.strftime("%Y-%m-%d %H:%M")
         )
 
-        # change all values "Sonstige Jugendarbeit" in column "EC-Jugendarbeit" to "Sonstige"
-        df["EC-Jugendarbeit"] = df["EC-Jugendarbeit"].replace("Sonstige Jugendarbeit", "Sonstige")
+        # change all values "sonstige Jugendarbeit" in column "EC-Jugendarbeit" to "Sonstige"
+        df["EC-Jugendarbeit"] = df["EC-Jugendarbeit"].replace("sonstige Jugendarbeit", "Sonstige")
 
         # remove all substrings "EC-Jugendarbeit " from all values in column "EC-Jugendarbeit"
         df["EC-Jugendarbeit"] = df["EC-Jugendarbeit"].str.replace("EC-Jugendarbeit ", "", regex=False)
