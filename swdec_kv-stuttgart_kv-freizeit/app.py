@@ -98,9 +98,9 @@ class Dataframe:
         )
         
         
-        # simplify values in column "Anrede"
+        # simplify values in column "Geschlecht"
         # rename all values "Herr" to "männlich" and all values "Frau" to "weiblich":
-        df["Anrede"] = df["Anrede"].replace(
+        df["Geschlecht"] = df["Geschlecht"].replace(
             {
                 "Herr": "männlich",
                 "Frau": "weiblich",
