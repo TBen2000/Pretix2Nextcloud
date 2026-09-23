@@ -36,7 +36,7 @@ jobs:
               - 'swdec_kv-stuttgart_jungslager/**'
             swdec-kvstuttgart-maedelslager:
               - 'swdec_kv-stuttgart_maedelslager/**'
-              swdec-kvstuttgart-teencamp:
+            swdec-kvstuttgart-teencamp:
               - 'swdec_kv-stuttgart_teencamp/**'
             swdec-kvstuttgart-kv-freizeit:
               - 'swdec_kv-stuttgart_kv-freizeit/**'
