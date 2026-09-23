@@ -32,12 +32,14 @@ jobs:
               # - '.github/workflows/publish-ghcr.yaml'  # (uncomment if you want to trigger on workflow changes)
             swdec-kvstuttgart-jungschartag:
               - 'swdec_kv-stuttgart_jungschartag/**'
-            swdec-kvstuttgart-teencamp:
-              - 'swdec_kv-stuttgart_teencamp/**'
             swdec-kvstuttgart-jungslager:
               - 'swdec_kv-stuttgart_jungslager/**'
             swdec-kvstuttgart-maedelslager:
               - 'swdec_kv-stuttgart_maedelslager/**'
+              swdec-kvstuttgart-teencamp:
+              - 'swdec_kv-stuttgart_teencamp/**'
+            swdec-kvstuttgart-kv-freizeit:
+              - 'swdec_kv-stuttgart_kv-freizeit/**'
             swdec-kvheilbronn-bubenzeltlager:
               - 'swdec_kv-heilbronn_bubenzeltlager/**'
             swdec-kvheilbronn-maedchenzeltlager:
@@ -54,11 +56,12 @@ jobs:
 
           # Image configuration
           all_images = [
-            { "id": "swdec-kvstuttgart-jungschartag", "folder": "swdec_kv-stuttgart_jungschartag" },
-            { "id": "swdec-kvstuttgart-teencamp",     "folder": "swdec_kv-stuttgart_teencamp"     },
-            { "id": "swdec-kvstuttgart-jungslager",   "folder": "swdec_kv-stuttgart_jungslager"   },
-            { "id": "swdec-kvstuttgart-maedelslager", "folder": "swdec_kv-stuttgart_maedelslager" },
-            { "id": "swdec-kvheilbronn-bubenzeltlager", "folder": "swdec_kv-heilbronn_bubenzeltlager" },
+            { "id": "swdec-kvstuttgart-jungschartag",      "folder": "swdec_kv-stuttgart_jungschartag"      },
+            { "id": "swdec-kvstuttgart-jungslager",        "folder": "swdec_kv-stuttgart_jungslager"        },
+            { "id": "swdec-kvstuttgart-maedelslager",      "folder": "swdec_kv-stuttgart_maedelslager"      },
+            { "id": "swdec-kvstuttgart-teencamp",          "folder": "swdec_kv-stuttgart_teencamp"          },
+            { "id": "swdec-kvstuttgart-kv-freizeit",       "folder": "swdec_kv-stuttgart_kv-freizeit"       },
+            { "id": "swdec-kvheilbronn-bubenzeltlager",    "folder": "swdec_kv-heilbronn_bubenzeltlager"    },
             { "id": "swdec-kvheilbronn-maedchenzeltlager", "folder": "swdec_kv-heilbronn_maedchenzeltlager" },
           ]
 
