@@ -453,6 +453,10 @@ class PretixAPI:
         self.session.mount("http://", adapter)
 
 
+    def _normalize_question_name(self, name: str) -> str:
+        return " ".join(name.split())  # replace \r\n, \t, multiple spaces, etc. with a single space character
+
+
     def _get_questions(self) -> dict:
         """
         Fetch all questions from Pretix API and return a mapping of question ID to question text.
@@ -468,7 +472,7 @@ class PretixAPI:
 
             for q in data["results"]:
                 question_text = q["question"].get("de") or next(iter(q["question"].values()))
-                questions[q["id"]] = question_text
+                questions[q["id"]] = self._normalize_question_name(question_text)
 
             url = data["next"]  # Pagination
 
