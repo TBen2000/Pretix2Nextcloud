@@ -77,6 +77,7 @@ class Dataframe:
             "order_code": "Bestellnummer",
             "status": "Bestellstatus",
             "email": "E-Mail",
+            "E-Mail-Adresse Teen": "E-Mail Teen",
             "total": "Gesamtpreis",
             "date": "Anmeldedatum",
             "invoice_name": "Rechnung - Name",
@@ -89,11 +90,10 @@ class Dataframe:
             "price": "Preis",
             "attendee_firstname": "Vorname",
             "attendee_lastname": "Nachname",
-            "Ernährung: Vegetarisch": "Vegetarisch",
-            "Ernährung: Laktosefrei": "Laktosefrei",
-            "Ernährung: Glutenfrei": "Glutenfrei",
             "Gültige Tetanusimpfung vorhanden": "Tetanusimpfung",
             "Geht Ihr Kind in einen Teenkreis?": "Besucht Teenkreis",
+            "Essensunverträglichkeiten": "Essensunverträglichkeiten Ja/Nein",
+            "Welche Unverträglichkeiten?": "Essensunverträglichkeiten",
             "Welche Medikamente?": "Medikamente",
             "Worauf muss außerdem besonders geachtet werden?": "Medizinische Besonderheiten",
             "Zuschuss beantragen": "Zuschuss beantragt",
@@ -116,12 +116,6 @@ class Dataframe:
             df["Rechnung - Land"].fillna("").str.strip()
         )
         
-        # replace "False" and "True in columns "Vegetarisch", "Laktosefrei" and "Glutenfrei" with "Nein" and "Ja"
-        for col in ["Vegetarisch", "Laktosefrei", "Glutenfrei"]:
-            df[col] = df[col].replace({False: "Nein", True: "Ja"})
-            df[col] = df[col].replace({"False": "Nein", "True": "Ja"})
-        # add colum "Ernährung" based on "Vegetarisch", "Laktosefrei" and "Glutenfrei"
-        df["Ernährung"] = df.apply(lambda row: ", ".join([col for col in ["Vegetarisch", "Laktosefrei", "Glutenfrei"] if row[col] == "Ja"]), axis=1)
         
         # simplify values in column "Krankenversicherung"
         # rename all values "Privat krankenversichert" to "privat" and all values "Gesetzlich krankenversichert (z.B. AOK)" to "gesetzlich":
@@ -177,7 +171,7 @@ class Dataframe:
             "Bestellnummer",
             "Bestellstatus",
             "E-Mail",
-            "E-Mail-Adresse Teen",
+            "E-Mail Teen",
             "Gesamtpreis",
             "Anmeldedatum",
             "Rechnung - Empfänger",
@@ -189,9 +183,6 @@ class Dataframe:
             "Geburtsdatum",
             "Geschlecht",
             "Ernährung",
-            "Vegetarisch",
-            "Laktosefrei",
-            "Glutenfrei",
             "Essensunverträglichkeiten",
             "Tetanusimpfung",
             "Krankenversicherung",
@@ -479,6 +470,7 @@ class Dataframe:
             "Nachname",
             "Vorname",
             "Geburtsdatum",
+            "Geschlecht",
             "Ort",
             "Notfall-Telefonnummern",
             "E-Mail",
@@ -549,8 +541,8 @@ class Dataframe:
             "Ort",
             "Ernährung",
             "Essensunverträglichkeiten",
-            "Medizinische Besonderheiten",
             "E-Mail",
+            "E-Mail Teen",
             "Rechnung - Empfänger",
             "Notfall-Telefonnummern",
             "Anmeldedatum",
@@ -564,6 +556,7 @@ class Dataframe:
         # columns to clear if no intolerance is given
         columns_to_clear = [
             "E-Mail",
+            "E-Mail Teen",
             "Anmeldedatum",
             "Rechnung - Empfänger",
             "Notfall-Telefonnummern",
