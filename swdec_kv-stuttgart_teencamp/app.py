@@ -260,6 +260,7 @@ class Dataframe:
             "Bestellnummer",
             "Anmeldedatum",
             "E-Mail",
+            "E-Mail Teen",
             "Rechnung - Empfänger",
             "Rechnung - Adresse",
         ]
