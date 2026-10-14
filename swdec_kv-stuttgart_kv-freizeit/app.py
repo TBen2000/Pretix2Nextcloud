@@ -299,7 +299,9 @@ class Dataframe:
             invoice_df.index = range(1, len(invoice_df) + 1)
 
             # Add total sum row for "Preis" column
+            invoice_df["Preis"] = invoice_df["Preis"].astype(float)
             total_sum = invoice_df["Preis"].sum()
+            total_sum = "{:.2f}".format(total_sum)  # total_sum to string with 2 decimal places
             total_row = pd.DataFrame(
                 {
                     "Nachname": [""],
@@ -307,9 +309,10 @@ class Dataframe:
                     "E-Mail": ["GESAMT:"],
                     "Preis": [total_sum],
                     "Art": [""],
-                }
+                },
+                index=[""],  # empty index for the total row
             )
-            invoice_df = pd.concat([invoice_df, total_row], ignore_index=True)
+            invoice_df = pd.concat([invoice_df, total_row])
 
             # change "Preis" to string and add " €" at the end of every value
             invoice_df["Preis"] = invoice_df["Preis"].apply(lambda x: str(x).replace(".", ",") + " €" if pd.notnull(x) else x)
