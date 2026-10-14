@@ -289,17 +289,17 @@ class Dataframe:
         )
 
         # sort by town:
-        df_by_town_dict = {}
+        invoice_db_by_town_dict = {}
         df_towns = (df["EC-Jugendarbeit"].dropna().astype(str).str.strip().unique())
         towns = sorted(set(self.towns_list) | set(df_towns))
         for town in towns:
             # filter by town, drop column "EC-Jugendarbeit" and reset index numbers
-            town_df = df[df["EC-Jugendarbeit"] == town]
-            town_df = town_df.drop(columns=["EC-Jugendarbeit"])
-            town_df.index = range(1, len(town_df) + 1)
+            invoice_df = df[df["EC-Jugendarbeit"] == town]
+            invoice_df = invoice_df.drop(columns=["EC-Jugendarbeit"])
+            invoice_df.index = range(1, len(invoice_df) + 1)
 
             # Add total sum row for "Preis" column
-            total_sum = town_df["Preis"].sum()
+            total_sum = invoice_df["Preis"].sum()
             total_row = pd.DataFrame(
                 {
                     "Nachname": [""],
@@ -309,16 +309,16 @@ class Dataframe:
                     "Art": [""],
                 }
             )
-            town_df = pd.concat([town_df, total_row], ignore_index=True)
+            invoice_df = pd.concat([invoice_df, total_row], ignore_index=True)
 
             # change "Preis" to string and add " €" at the end of every value
-            town_df["Preis"] = town_df["Preis"].apply(lambda x: str(x).replace(".", ",") + " €" if pd.notnull(x) else x)
+            invoice_df["Preis"] = invoice_df["Preis"].apply(lambda x: str(x).replace(".", ",") + " €" if pd.notnull(x) else x)
 
-            df_by_town_dict[town] = town_df
+            invoice_db_by_town_dict[town] = invoice_df
 
         logging.info("Filtered invoice data by town.")
 
-        return df_by_town_dict
+        return invoice_db_by_town_dict
 
     def _get_numbers_df(self) -> pd.DataFrame:
         """
@@ -426,7 +426,7 @@ class CustomMain(Main):
         self.upload(dataframe.orders_df, "Bestellungen", filterable=True)
 
         # generate and upload excel file for town-wise invoices
-        for town, df in dataframe.town_dfs.items():
+        for town, df in dataframe.invoice_by_town_dfs.items():
             self.upload(df, town, subdir="Rechnungen", filterable=False)
         
         self.upload_dir_tech_details = "Technische_Details"  # set upload directory for technical files like Last_updated.txt, error logs and docker image version info.
