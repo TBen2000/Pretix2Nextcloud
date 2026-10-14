@@ -424,6 +424,10 @@ class CustomMain(Main):
         
         # generate and upload excel file for all orders
         self.upload(dataframe.orders_df, "Bestellungen", filterable=True)
+
+        # generate and upload excel file for town-wise invoices
+        for town, df in dataframe.town_dfs.items():
+            self.upload(df, town, subdir="Rechnungen", filterable=False)
         
         self.upload_dir_tech_details = "Technische_Details"  # set upload directory for technical files like Last_updated.txt, error logs and docker image version info.
         
