@@ -301,6 +301,14 @@ class Dataframe:
             # Add total sum row for "Preis" column
             invoice_df["Preis"] = invoice_df["Preis"].astype(float)
             total_sum = invoice_df["Preis"].sum()
+
+            # empty row to separate total sum from the rest of the data
+            empty_row = pd.DataFrame(
+                {col: [""] for col in invoice_df.columns},
+                index=[""],
+            )
+            empty_row["Preis"] = None  # damit die Formatierung unten nicht crasht
+
             total_row = pd.DataFrame(
                 {
                     "Nachname": [""],
@@ -309,12 +317,13 @@ class Dataframe:
                     "Preis": [total_sum],
                     "Art": [""],
                 },
-                index=[""],  # empty index for the total row
+                index=[""],
             )
-            invoice_df = pd.concat([invoice_df, total_row])
 
-            # change "Preis" to string with 2 decimal places and add " €" at the end of every value
-            invoice_df["Preis"] = invoice_df["Preis"].apply(lambda x: "{:.2f}".format(x).replace(".", ",") + " €" if pd.notnull(x) else x)
+            invoice_df = pd.concat([invoice_df, empty_row, total_row])
+
+            # change "Preis" to string with 2 decimal places and add " €"
+            invoice_df["Preis"] = invoice_df["Preis"].apply(lambda x: "{:.2f}".format(x).replace(".", ",") + " €" if pd.notnull(x) else "")
 
             invoice_db_by_town_dict[town] = invoice_df
 
