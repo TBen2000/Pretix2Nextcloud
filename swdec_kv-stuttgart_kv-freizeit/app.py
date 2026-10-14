@@ -305,7 +305,7 @@ class Dataframe:
                     "Nachname": [""],
                     "Vorname": [""],
                     "E-Mail": ["GESAMT:"],
-                    "Preis": [str(total_sum).replace(".", ",") + " €"],
+                    "Preis": [total_sum],
                     "Art": [""],
                 }
             )
