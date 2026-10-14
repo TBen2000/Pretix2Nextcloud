@@ -56,6 +56,7 @@ class Dataframe:
         self.debloated_df = self._get_debloated_df()
         self.attendees_df = self._get_attendees_df()
         self.town_dfs = self._get_town_dfs()
+        self.invoice_by_town_dfs = self._get_invoice_by_town_dfs()
         self.numbers_overview = self._get_numbers_df()
         self.orders_df = self._get_orders_df()
 
@@ -261,6 +262,64 @@ class Dataframe:
 
         return df_by_town_dict
 
+    def _get_invoice_by_town_dfs(self) -> dict[str, pd.DataFrame]:
+        """
+        Process sorted dataframe for invoice data to create a dictionary of dataframes filtered by town.
+        """
+
+        df = self.debloated_df.copy()
+
+        # removed all cancelled registrations
+        df = df[df["Bestellstatus"] != "storniert"]
+
+        # filter for columns and set their order
+        wanted_columns = [
+            "Nachname",
+            "Vorname",
+            "E-Mail",
+            "Preis",
+            "Art",
+            "EC-Jugendarbeit",
+        ]
+        df = df.filter(wanted_columns)
+        
+        # sort (by "Nachname" and then by "Vorname")
+        df = df.sort_values(
+            by=["Nachname", "Vorname"], ascending=True
+        )
+
+        # sort by town:
+        df_by_town_dict = {}
+        df_towns = (df["EC-Jugendarbeit"].dropna().astype(str).str.strip().unique())
+        towns = sorted(set(self.towns_list) | set(df_towns))
+        for town in towns:
+            # filter by town, drop column "EC-Jugendarbeit" and reset index numbers
+            town_df = df[df["EC-Jugendarbeit"] == town]
+            town_df = town_df.drop(columns=["EC-Jugendarbeit"])
+            town_df.index = range(1, len(town_df) + 1)
+
+            # Add total sum row for "Preis" column
+            total_sum = town_df["Preis"].sum()
+            total_row = pd.DataFrame(
+                {
+                    "Nachname": [""],
+                    "Vorname": [""],
+                    "E-Mail": ["GESAMT:"],
+                    "Preis": [str(total_sum).replace(".", ",") + " €"],
+                    "Art": [""],
+                }
+            )
+            town_df = pd.concat([town_df, total_row], ignore_index=True)
+
+            # change "Preis" to string and add " €" at the end of every value
+            town_df["Preis"] = town_df["Preis"].apply(lambda x: str(x).replace(".", ",") + " €" if pd.notnull(x) else x)
+
+            df_by_town_dict[town] = town_df
+
+        logging.info("Filtered invoice data by town.")
+
+        return df_by_town_dict
+
     def _get_numbers_df(self) -> pd.DataFrame:
         """
         Calculate and return a dataframe with counts attendees by town.
@@ -301,18 +360,11 @@ class Dataframe:
             "E-Mail",
             "Gesamtpreis",
             "Anmeldedatum",
-            "Rechnung - Empfänger",
-            "Rechnung - Adresse",
-            "Zuschuss beantragt",
-        ]
-        wanted_columns = [
-            "Bestellnummer",
-            "Bestellstatus",
-            "E-Mail",
-            "Gesamtpreis",
-            "Anmeldedatum",
         ]
         df = df.filter(wanted_columns)
+
+        # change "Gesamtpreis" to string and add " €" at the end of every value
+        df["Gesamtpreis"] = df["Gesamtpreis"].apply(lambda x: str(x).replace(".", ",") + " €" if pd.notnull(x) else x)
         
         # combine rows with same Bestellnummer (every entry with the same "Bestellnummer" has the same values for all the other columns)
         df = df.groupby("Bestellnummer", as_index=False).first()
