@@ -1085,13 +1085,14 @@ class Excel:
             for idx, col in enumerate(df.columns, start=2):  # start=2 because index is in column 1
                 max_data_length = (
                     df[col]
-                    .fillna("")
-                    .apply(lambda x: len(str(x)))
+                    .apply(lambda x: 0 if pd.isna(x) else len(str(x)))
                     .max()
                 )
+                if pd.isna(max_data_length):  # empty dataframe
+                    max_data_length = 0
                 max_length = max(
                     len(str(col)),  # header length
-                    max_data_length,  # data length
+                    int(max_data_length),  # data length
                 )
                 length = min(max_length + 2, self.max_column_width)  # cap the width via constant
 
@@ -1100,9 +1101,10 @@ class Excel:
                 ].width = length
 
             # adjust index column width
+            index_name = "" if df.index.name is None or pd.isna(df.index.name) else str(df.index.name)
             max_index_length = max(
-                len(str(df.index.name or "")),  # index name length
-                df.index.astype(str).map(len).max(),  # index data length
+                len(index_name),  # index name length
+                int(df.index.astype(str).map(len).max() if len(df.index) > 0 else 0),  # index data length
             )
             worksheet.column_dimensions["A"].width = max_index_length + 2
 
