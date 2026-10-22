@@ -93,9 +93,6 @@ class Dataframe:
             df["Telefonnummer Mitarbeiter"]
         )
 
-        # add column "hat Geburtstag" with the value "Ja" if the birthday of the attendee is between start_date and end_date, otherwise empty string
-        df["hat Geburtstag"] = DataTools.get_birthday_age_in_period(df["Geburtsdatum"], self.start_date, self.end_date)
-
         # filter for columns and set their order
         wanted_columns = [
             "Ortschaft",
@@ -107,7 +104,6 @@ class Dataframe:
             "Ernährung",
             "Essensunverträglichkeiten",
             "Sonstiges",
-            "hat Geburtstag",
             "Ortsverantwortlicher",
             "Fahrer Angebot",
             "Anmeldedatum",
@@ -150,15 +146,10 @@ class Dataframe:
             "Ernährung",
             "Essensunverträglichkeiten",
             "Sonstiges",
-            "hat Geburtstag",
             "Fahrer Angebot",
             "Anmeldedatum",
         ]
         df = df.filter(wanted_columns)
-
-        # if column "hat Geburtstag" is completely empty, drop it
-        if df["hat Geburtstag"].isnull().all():
-            df = df.drop(columns=["hat Geburtstag"])
 
         # sort by town:
         df_by_town_dict = {}
