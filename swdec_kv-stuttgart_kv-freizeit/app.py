@@ -55,6 +55,7 @@ class Dataframe:
 
         self.debloated_df = self._get_debloated_df()
         self.attendees_df = self._get_attendees_df()
+        self.names_df = self._get_names_df()
         self.town_dfs = self._get_town_dfs()
         self.invoice_by_town_dfs = self._get_invoice_by_town_dfs()
         self.numbers_overview = self._get_numbers_df()
@@ -207,6 +208,9 @@ class Dataframe:
         ]
         df = df.filter(wanted_columns)
 
+        # if "Spitzname" is the same as "Vorname", set "Spitzname" to empty string
+        df.loc[df["Spitzname"] == df["Vorname"], "Spitzname"] = ""
+
         # sort (by "Nachname" and then by "Vorname") and reset index numbers
         df = df.sort_values(
             by=["Nachname", "Vorname"], ascending=True
@@ -261,6 +265,35 @@ class Dataframe:
         logging.info("Filtered attendees data by town.")
 
         return df_by_town_dict
+
+    def _get_names_df(self) -> pd.DataFrame:
+        """
+        Process attendees dataframe to create a sorted dataframe for names with required columns.
+        """
+
+        df = self.attendees_df.copy()
+
+        # filter for columns and set their order
+        wanted_columns = [
+            "Nachname",
+            "Vorname",
+            "Spitzname",
+            "EC-Jugendarbeit",
+        ]
+        df = df.filter(wanted_columns)
+
+        # add empty column "Anwesend" to the dataframe
+        df["Anwesend"] = ""
+
+        # sort (by §EC-Jugendarbeit", then by "Nachname" and then by "Vorname") and reset index numbers
+        df = df.sort_values(
+            by=["EC-Jugendarbeit", "Nachname", "Vorname"], ascending=True
+        )
+        df.index = range(1, len(df) + 1)
+
+        logging.info("Sorted attendees data into names data.")
+
+        return df
 
     def _get_invoice_by_town_dfs(self) -> dict[str, pd.DataFrame]:
         """
@@ -425,6 +458,9 @@ class CustomMain(Main):
         
         # generate and upload excel file for all attendees
         self.upload(dataframe.attendees_df, "Teilnehmerdaten", filterable=True, freeze_panes=(1,3))
+
+        # generate and upload excel file for a list of all attendees names
+        self.upload(dataframe.names_df, "Namensliste", filterable=True)
         
         # generate and upload excel file for town-wise attendees
         for town, df in dataframe.town_dfs.items():
