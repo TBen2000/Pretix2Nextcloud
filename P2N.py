@@ -837,6 +837,20 @@ class PretixAPI:
 class DataTools:
 
     @staticmethod
+    def _to_year_2000(dates: pd.Series) -> pd.Series:
+        """
+        Set the year of all dates in the series to 2000 to compare only day and month.
+        2000 is a leap year, so 29th of February is valid.
+        Missing or invalid dates result in NaT.
+        """
+
+        return pd.to_datetime(
+            pd.to_datetime(dates, errors="coerce").dt.strftime("2000-%m-%d"),
+            format="%Y-%m-%d",
+            errors="coerce",
+        )
+
+    @staticmethod
     def is_anniversary_in_period(dates: pd.Series, start_date: date, end_date: date) -> pd.Series:
         """
         Check for each date in the series whether its anniversary (day and month, year ignored)
@@ -851,11 +865,7 @@ class DataTools:
         """
 
         # set the year of all dates to 2000 (leap year, so 29th of February is valid) to compare only day and month
-        anniversaries = pd.to_datetime(
-            pd.to_datetime(dates, errors="coerce").dt.strftime("2000-%m-%d"),
-            format="%Y-%m-%d",
-            errors="coerce",
-        )
+        anniversaries = DataTools._to_year_2000(dates)
         start = pd.Timestamp(start_date.replace(year=2000))
         end = pd.Timestamp(end_date.replace(year=2000))
 
@@ -865,7 +875,76 @@ class DataTools:
 
         # period spans New Year's Eve
         return (anniversaries >= start) | (anniversaries <= end)
-    
+
+    @staticmethod
+    def get_birthday_age_in_period(dates: pd.Series, start_date: date, end_date: date) -> pd.Series:
+        """
+        For each birth date in the series, return the age the person turns on their birthday
+        if the birthday lies within the period from start_date to end_date (both inclusive), formatted as e.g. "14.".
+        Otherwise, return an empty string.
+        Typical use case: showing which age an attendee turns during the event.
+
+        Periods spanning New Year's Eve and 29th of February are supported.
+        Missing or invalid dates result in an empty string.
+
+        Returns a string series with the same index as the input series.
+        """
+
+        birth_dates = pd.to_datetime(dates, errors="coerce")
+        has_birthday = DataTools.is_anniversary_in_period(birth_dates, start_date, end_date)
+
+        # if the birthday lies within the period, the new age is already reached on end_date
+        ages = DataTools._age_at(birth_dates[has_birthday], end_date)
+
+        result = pd.Series("", index=dates.index, dtype="object")
+        result[has_birthday] = ages.astype(int).astype(str) + "."
+        return result
+
+    @staticmethod
+    def _age_at(birth_dates: pd.Series, reference_date: date) -> pd.Series:
+        """
+        Calculate the age (in completed years) for each birth date at the given reference date.
+        Birthdays are compared in the leap year 2000, so 29th of February is valid.
+        In non-leap years, 29th of February birthdays count from 1st of March.
+        Missing or invalid dates result in NaN.
+        """
+
+        # set the year of all dates to 2000 (leap year, so 29th of February is valid) to compare only day and month
+        birthdays = DataTools._to_year_2000(birth_dates)
+        reference = pd.Timestamp(reference_date.replace(year=2000))
+
+        # subtract one year if the birthday has not been reached yet in the reference year
+        birthday_not_reached = (birthdays > reference).astype(int)
+        return reference_date.year - birth_dates.dt.year - birthday_not_reached
+
+    @staticmethod
+    def is_age_out_of_range(dates: pd.Series, start_date: date, end_date: date, min_age: int = None, max_age: int = None) -> pd.Series:
+        """
+        Check for each birth date in the series whether the person does NOT fit the age range during the period from start_date to end_date.
+
+        min_age: The person is out of range if they have not reached min_age by end_date (turning min_age during the period is ok).
+        max_age: The person is out of range if they are older than max_age on start_date (turning max_age + 1 during the period is ok).
+        Both limits are optional and inclusive.
+        Missing or invalid dates result in True.
+
+        Returns a boolean series with the same index as the input series.
+        """
+
+        if min_age is not None and max_age is not None and min_age > max_age:
+            raise ValueError(f"min_age ({min_age}) must not be greater than max_age ({max_age}).")
+
+        birth_dates = pd.to_datetime(dates, errors="coerce")
+
+        # invalid or missing birth dates are always out of range
+        out_of_range = birth_dates.isna()
+
+        if min_age is not None:
+            out_of_range |= DataTools._age_at(birth_dates, end_date) < min_age
+
+        if max_age is not None:
+            out_of_range |= DataTools._age_at(birth_dates, start_date) > max_age
+
+        return out_of_range
     
 class FilenameHandling():
     def sanitize_filename(self, filename: str) -> str:

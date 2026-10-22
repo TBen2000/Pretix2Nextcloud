@@ -94,8 +94,7 @@ class Dataframe:
         )
 
         # add column "hat Geburtstag" with the value "Ja" if the birthday of the attendee is between start_date and end_date, otherwise empty string
-        birthday_on_camp = DataTools.is_anniversary_in_period(df["Geburtsdatum"], self.start_date, self.end_date)
-        df["hat Geburtstag"] = birthday_on_camp.map({True: "Ja", False: ""})
+        df["hat Geburtstag"] = DataTools.get_birthday_age_in_period(df["Geburtsdatum"], self.start_date, self.end_date)
 
         # filter for columns and set their order
         wanted_columns = [

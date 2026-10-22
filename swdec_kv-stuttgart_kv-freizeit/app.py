@@ -138,8 +138,7 @@ class Dataframe:
         )
 
         # add column "Geburtstag auf Freizeit" with the value "Ja" if the birthday of the attendee is between start_date and end_date, otherwise empty string
-        birthday_on_camp = DataTools.is_anniversary_in_period(df["Geburtsdatum"], self.start_date, self.end_date)
-        df["Geburtstag auf Freizeit"] = birthday_on_camp.map({True: "Ja", False: ""})
+        df["Geburtstag auf dem Lager"] = DataTools.get_birthday_age_in_period(df["Geburtsdatum"], self.start_date, self.end_date)
 
         # change all values "sonstige Jugendarbeit" in column "EC-Jugendarbeit" to "Sonstige"
         df["EC-Jugendarbeit"] = df["EC-Jugendarbeit"].replace("sonstige Jugendarbeit", "Sonstige")
