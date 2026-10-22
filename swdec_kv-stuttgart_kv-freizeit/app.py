@@ -208,9 +208,10 @@ class Dataframe:
         ]
         df = df.filter(wanted_columns)
 
-        # if "Spitzname" is the same as "Vorname" (not case sensitive), set "Spitzname" to empty string
-        mask = df["Vorname"].str.casefold() == df["Spitzname"].str.casefold()
-        df.loc[mask, "Spitzname"] = ""
+        # if "Spitzname" is the same as "Vorname" (not case sensitive) and if "Spitzname" contains less than two alphanumeric characters, set "Spitzname" to empty string
+        mask_equal = df["Vorname"].str.casefold() == df["Spitzname"].str.casefold()
+        mask_not_enough_alph_chars = df["Spitzname"].str.count(r"[^\W\d_]") < 2
+        df.loc[mask_equal | mask_not_enough_alph_chars, "Spitzname"] = ""
 
         # sort (by "Nachname" and then by "Vorname") and reset index numbers
         df = df.sort_values(
