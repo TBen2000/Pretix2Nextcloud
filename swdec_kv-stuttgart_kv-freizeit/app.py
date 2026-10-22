@@ -301,22 +301,22 @@ class Dataframe:
 
         df = self.attendees_df.copy()
 
-        # filter for columns and set their order
-        wanted_columns = [
-            "Nachname",
-            "Vorname",
-            "Spitzname",
-            "EC-Jugendarbeit",
-        ]
-        df = df.filter(wanted_columns)
-
         # add empty column "Anwesend" to the dataframe
         df["Anwesend"] = ""
 
-        # sort (by §EC-Jugendarbeit", then by "Nachname" and then by "Vorname") and reset index numbers
-        df = df.sort_values(
-            by=["EC-Jugendarbeit", "Nachname", "Vorname"], ascending=True
-        )
+        # filter for columns and set their order
+        wanted_columns = [
+            "EC-Jugendarbeit",
+            "Nachname",
+            "Vorname",
+            "Spitzname",
+            "Anwesend",
+            "Einverständniserklärung",
+        ]
+        df = df.filter(wanted_columns)
+
+        # sort (by "EC-Jugendarbeit", then by "Nachname" and then by "Vorname") and reset index numbers
+        df = df.sort_values(by=["EC-Jugendarbeit", "Nachname", "Vorname"], ascending=True)
         df.index = range(1, len(df) + 1)
 
         logging.info("Sorted attendees data into names data.")
