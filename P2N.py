@@ -901,6 +901,21 @@ class DataTools:
         return result
 
     @staticmethod
+    def get_age_at(dates: pd.Series, reference_date: date) -> pd.Series:
+        """
+        Calculate the age (in completed years) for each birth date in the series at the given reference date.
+        Typical use case: showing the age of an attendee at the start of the event.
+
+        29th of February is supported.
+        Missing or invalid dates result in <NA>.
+
+        Returns an integer series (nullable Int64) with the same index as the input series.
+        """
+
+        birth_dates = pd.to_datetime(dates, errors="coerce")
+        return DataTools._age_at(birth_dates, reference_date).astype("Int64")
+
+    @staticmethod
     def _age_at(birth_dates: pd.Series, reference_date: date) -> pd.Series:
         """
         Calculate the age (in completed years) for each birth date at the given reference date.

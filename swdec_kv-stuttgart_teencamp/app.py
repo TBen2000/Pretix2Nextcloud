@@ -167,9 +167,18 @@ class Dataframe:
             }
         )
 
-        # add column "Geburtstag auf dem Lager" with the value "Ja" if the birthday of the attendee is between start_date and end_date, otherwise empty string
+        # add column "Geburtstag auf dem Lager" with the value 'age' if the birthday of the attendee is between start_date and end_date, otherwise "Nein"
         df["Geburtstag auf dem Lager"] = DataTools.get_birthday_age_in_period(df["Geburtsdatum"], self.start_date, self.end_date)
-        
+        df["Geburtstag auf dem Lager"] = df["Geburtstag auf dem Lager"].fillna("Nein")
+
+        # add column "Alter" with the age of the attendee at the start date of the event
+        df["Alter"] = DataTools.get_age_at(df["Geburtsdatum"], self.start_date)
+
+        # add column "falsches Alter" with the value "Ja" if the age of the attendee is not between 14 and 17 years, otherwise empty string
+        df["falsches Alter"] = DataTools.is_age_out_of_range(
+            df["Geburtsdatum"], self.start_date, self.end_date, min_age=14, max_age=17
+        ).map({True: "Ja", False: ""})
+
         # filter for columns and set their order
         wanted_columns = [
             "Bestellnummer",
@@ -185,6 +194,7 @@ class Dataframe:
             "Vorname",
             "Nachname",
             "Geburtsdatum",
+            "Alter",
             "Geschlecht",
             "Ernährung",
             "Essensunverträglichkeiten",
@@ -200,6 +210,7 @@ class Dataframe:
             "Ort",
             "Sonstiges",
             "Geburtstag auf dem Lager",
+            "falsches Alter",
             "Zuschuss beantragt",
             "Einverständniserklärung",
         ]
@@ -269,6 +280,7 @@ class Dataframe:
             "Rechnung - Empfänger",
             "Rechnung - Adresse",
             "Geburtstag auf dem Lager",
+            "falsches Alter",
         ]
         df = df.filter(wanted_columns)
 
@@ -303,8 +315,8 @@ class Dataframe:
         ]
         df = df.filter(wanted_columns)
 
-        # if column "Geburtstag auf dem Lager" is completely empty, drop it
-        if df["Geburtstag auf dem Lager"].isnull().all():
+        # if column "Geburtstag auf dem Lager" is completely filled with "Nein", drop it
+        if df["Geburtstag auf dem Lager"].eq("Nein").all():
             df = df.drop(columns=["Geburtstag auf dem Lager"])
 
         # sort (by "Nachname" and then by "Vorname")

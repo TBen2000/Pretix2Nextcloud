@@ -110,14 +110,6 @@ class Dataframe:
                 "Frau": "weiblich",
             }
         )
-        
-        # simplify values in column "Einverständniserklärung"
-        # rename all values that conatain any text to "hochgeladen":
-        df.loc[
-            df["Einverständniserklärung"].notna() & 
-            (df["Einverständniserklärung"].astype(str).str.strip() != ""),
-            "Einverständniserklärung"
-        ] = "hochgeladen"
        
         
         # rename values in "Bestellstatus" from acronyms to the complete meaning
@@ -140,6 +132,25 @@ class Dataframe:
         # add column "Geburtstag auf Freizeit" with the value "Ja" if the birthday of the attendee is between start_date and end_date, otherwise empty string
         df["Geburtstag auf Freizeit"] = DataTools.get_birthday_age_in_period(df["Geburtsdatum"], self.start_date, self.end_date)
 
+        # add column "Alter" with the age of the attendee at the start date of the event
+        df["Alter"] = DataTools.get_age_at(df["Geburtsdatum"], self.start_date)
+
+        # simplify values in column "Einverständniserklärung"
+        # rename all values that conatain any text to "hochgeladen":
+        df.loc[
+            df["Einverständniserklärung"].notna() & 
+            (df["Einverständniserklärung"].astype(str).str.strip() != ""),
+            "Einverständniserklärung"
+        ] = "hochgeladen"
+
+        # add "nicht hochgeladen" to all empty values in column "Einverständniserklärung" if column "Alter" is less than 18, otherwise empty
+        is_empty = (
+            df["Einverständniserklärung"].isna() |
+            (df["Einverständniserklärung"].astype(str).str.strip() == "")
+        )
+        is_minor = (df["Alter"] < 18).fillna(True)
+        df.loc[is_empty & is_minor, "Einverständniserklärung"] = "nicht hochgeladen"
+
         # change all values "sonstige Jugendarbeit" in column "EC-Jugendarbeit" to "Sonstige"
         df["EC-Jugendarbeit"] = df["EC-Jugendarbeit"].replace("sonstige Jugendarbeit", "Sonstige")
 
@@ -160,6 +171,7 @@ class Dataframe:
             "Nachname",
             "Spitzname",
             "Geburtsdatum",
+            "Alter",
             "Geschlecht",
             "EC-Jugendarbeit",
             "Massenlager",
@@ -200,6 +212,7 @@ class Dataframe:
             "Vorname",
             "Spitzname",
             "Geburtsdatum",
+            "Alter",
             "Geschlecht",
             "EC-Jugendarbeit",
             "Sonstiges",
@@ -242,6 +255,7 @@ class Dataframe:
             "Nachname",
             "Vorname",
             "Geburtsdatum",
+            "Alter",
             "Geburtstag auf Freizeit",
             "Geschlecht",
             "EC-Jugendarbeit",
