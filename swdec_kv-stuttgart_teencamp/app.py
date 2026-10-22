@@ -669,11 +669,11 @@ class CustomMain(Main):
 
         # generate and upload excel file for town-wise male attendees
         for town, df in dataframe.sharable_town_dfs_males.items():
-            self.upload(df, town, subdir="Zum_Teilen/Männlich")
+            self.upload(df, f"{town} (männlich)", subdir="Zum_Teilen/Männlich")
 
         # generate and upload excel file for town-wise female attendees
         for town, df in dataframe.sharable_town_dfs_females.items():
-            self.upload(df, town, subdir="Zum_Teilen/Weiblich")
+            self.upload(df, f"{town} (weiblich)", subdir="Zum_Teilen/Weiblich")
 
         # generate and upload excel file for numbers overview
         self.upload(dataframe.numbers_overview, "Anmeldezahlen")
