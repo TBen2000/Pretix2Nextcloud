@@ -285,8 +285,8 @@ class Dataframe:
             town_df.index = range(1, len(town_df) + 1)
 
             # if column "Geburtstag auf Freizeit" is completely empty, drop it
-            if df["Geburtstag auf Freizeit"].isnull().all():
-                df = df.drop(columns=["Geburtstag auf Freizeit"])
+            if town_df["Geburtstag auf Freizeit"].isnull().all():
+                town_df = town_df.drop(columns=["Geburtstag auf Freizeit"])
 
             df_by_town_dict[town] = town_df
 

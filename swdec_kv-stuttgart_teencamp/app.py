@@ -170,8 +170,11 @@ class Dataframe:
         )
 
         # add column "Geburtstag auf dem Lager" with the value 'age' if the birthday of the attendee is between start_date and end_date, otherwise "Nein"
-        df["Geburtstag auf dem Lager"] = DataTools.get_birthday_age_in_period(df["Geburtsdatum"], self.start_date, self.end_date)
-        df["Geburtstag auf dem Lager"] = df["Geburtstag auf dem Lager"].fillna("Nein")
+        df["Geburtstag auf dem Lager"] = (
+            DataTools.get_birthday_age_in_period(df["Geburtsdatum"], self.start_date, self.end_date)
+            .astype("object")
+            .where(lambda s: s.notna() | df["Geburtsdatum"].isna(), "Nein")
+        )
 
         # add column "Alter" with the age of the attendee at the start date of the event
         df["Alter"] = DataTools.get_age_at(df["Geburtsdatum"], self.start_date)
