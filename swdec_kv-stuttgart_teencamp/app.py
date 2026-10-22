@@ -58,9 +58,11 @@ class Dataframe:
         self.attendees_df = self._get_attendees_df()
         self.town_dfs = self._get_town_dfs()
         self.sharable_town_dfs = self._get_sharable_town_dfs()
+        self.sharable_town_dfs_females = self._get_sharable_town_dfs_females()
+        self.sharable_town_dfs_males = self._get_sharable_town_dfs_males()
         self.numbers_overview = self._get_numbers_df()
         self.orders_df = self._get_orders_df()
-        self.donataions_df = self._get_donations_df()
+        self.donations_df = self._get_donations_df()
         self.contacts_df = self._get_contacts_df()
         self.medical_info_df = self._get_medical_info_df()
         self.diet_info_df = self._get_diet_info_df()
@@ -308,17 +310,14 @@ class Dataframe:
             "Vorname",
             "Geschlecht",
             "Geburtsdatum",
+            "Alter",
+            "Geburtstag auf dem Lager",
             "Besucht Teenkreis",
             "Ort",
             "Sonstiges",
-            "Geburtstag auf dem Lager",
             "Anmeldedatum",
         ]
         df = df.filter(wanted_columns)
-
-        # if column "Geburtstag auf dem Lager" is completely filled with "Nein", drop it
-        if df["Geburtstag auf dem Lager"].eq("Nein").all():
-            df = df.drop(columns=["Geburtstag auf dem Lager"])
 
         # sort (by "Nachname" and then by "Vorname")
         df = df.sort_values(
@@ -335,6 +334,10 @@ class Dataframe:
             town_df = town_df.drop(columns=["Ort"])
             town_df.index = range(1, len(town_df) + 1)
 
+            # if column "Geburtstag auf dem Lager" is completely filled with "Nein", drop it
+            if df["Geburtstag auf dem Lager"].eq("Nein").all():
+                df = df.drop(columns=["Geburtstag auf dem Lager"])
+
             df_by_town_dict[town] = town_df
 
         logging.info("Filtered attendees data by town.")
@@ -343,13 +346,52 @@ class Dataframe:
     
     def _get_sharable_town_dfs(self) -> dict[str, pd.DataFrame]:
         """
-        Process sorted dataframe for attendees to create a dictionary of dataframes filtered by town without the column "Sonstiges".
+        Process df_by_town_dict to create a dictionary of dataframes filtered by town without the column "Sonstiges" and "Geburtstag auf dem Lager".
         """
         new_dfs = {}
         
         for town, town_df in self.town_dfs.items():
             df = town_df.copy()
-            df = df.drop(columns=["Sonstiges"])
+            df = df.drop(columns=["Sonstiges", "Geburtstag auf dem Lager"], errors="ignore")
+            new_dfs[town] = df
+            
+        return new_dfs
+
+    def _get_sharable_town_dfs_males(self) -> dict[str, pd.DataFrame]:
+        """
+        Process df_by_town_dict to create a dictionary of dataframes filtered by town with only male attendees.
+        """
+        new_dfs = {}
+        
+        for town, town_df in self.sharable_town_dfs.items():
+            df = town_df.copy()
+            df = df[df["Geschlecht"] == "männlich"]
+            new_dfs[town] = df
+            
+        return new_dfs
+
+    def _get_sharable_town_dfs_females(self) -> dict[str, pd.DataFrame]:
+        """
+        Process df_by_town_dict to create a dictionary of dataframes filtered by town with only female attendees.
+        """
+        new_dfs = {}
+        
+        for town, town_df in self.sharable_town_dfs.items():
+            df = town_df.copy()
+            df = df[df["Geschlecht"] == "weiblich"]
+            new_dfs[town] = df
+            
+        return new_dfs
+
+    def _get_sharable_town_dfs_diverse(self) -> dict[str, pd.DataFrame]:
+        """
+        Process df_by_town_dict to create a dictionary of dataframes filtered by town with only diverse attendees.
+        """
+        new_dfs = {}
+        
+        for town, town_df in self.sharable_town_dfs.items():
+            df = town_df.copy()
+            df = df[df["Geschlecht"] == "divers"]
             new_dfs[town] = df
             
         return new_dfs
@@ -623,7 +665,15 @@ class CustomMain(Main):
             
         # generate and upload excel file for town-wise attendees
         for town, df in dataframe.sharable_town_dfs.items():
-            self.upload(df, town, subdir="Zum_Teilen")
+            self.upload(df, town, subdir="Zum_Teilen/Beides")
+
+        # generate and upload excel file for town-wise male attendees
+        for town, df in dataframe.sharable_town_dfs_males.items():
+            self.upload(df, town, subdir="Zum_Teilen/Männlich")
+
+        # generate and upload excel file for town-wise female attendees
+        for town, df in dataframe.sharable_town_dfs_females.items():
+            self.upload(df, town, subdir="Zum_Teilen/Weiblich")
 
         # generate and upload excel file for numbers overview
         self.upload(dataframe.numbers_overview, "Anmeldezahlen")
@@ -632,7 +682,7 @@ class CustomMain(Main):
         self.upload(dataframe.orders_df, "Bestellungen", subdir="Finanzen", filterable=True)
         
         # generate and upload excel file for all donations
-        self.upload(dataframe.donataions_df, "Spenden", subdir="Finanzen", filterable=True)
+        self.upload(dataframe.donations_df, "Spenden", subdir="Finanzen", filterable=True)
         
         # generate and upload excel file for emergency contacts
         self.upload(dataframe.contacts_df, "Notfallkontakte", filterable=True, freeze_panes=(1,3))

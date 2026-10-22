@@ -268,10 +268,6 @@ class Dataframe:
             "Anmeldedatum",
         ]
         df = df.filter(wanted_columns)
-
-        # if column "Geburtstag auf Freizeit" is completely empty, drop it
-        if df["Geburtstag auf Freizeit"].isnull().all():
-            df = df.drop(columns=["Geburtstag auf Freizeit"])
         
         # sort (by "Nachname" and then by "Vorname")
         df = df.sort_values(
@@ -287,6 +283,10 @@ class Dataframe:
             town_df = df[df["EC-Jugendarbeit"] == town]
             town_df = town_df.drop(columns=["EC-Jugendarbeit"])
             town_df.index = range(1, len(town_df) + 1)
+
+            # if column "Geburtstag auf Freizeit" is completely empty, drop it
+            if df["Geburtstag auf Freizeit"].isnull().all():
+                df = df.drop(columns=["Geburtstag auf Freizeit"])
 
             df_by_town_dict[town] = town_df
 
