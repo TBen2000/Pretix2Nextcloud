@@ -208,8 +208,9 @@ class Dataframe:
         ]
         df = df.filter(wanted_columns)
 
-        # if "Spitzname" is the same as "Vorname", set "Spitzname" to empty string
-        df.loc[df["Spitzname"].str.strip().lower() == df["Vorname"].str.strip().lower(), "Spitzname"] = ""
+        # if "Spitzname" is the same as "Vorname" (not case sensitive), set "Spitzname" to empty string
+        mask = df["Vorname"].str.casefold() == df["Spitzname"].str.casefold()
+        df.loc[mask, "Spitzname"] = ""
 
         # sort (by "Nachname" and then by "Vorname") and reset index numbers
         df = df.sort_values(
