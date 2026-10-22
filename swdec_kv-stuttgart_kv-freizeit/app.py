@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 # import P2N.py
 try:
-    from P2N import Main, Environment, PretixAPI
+    from P2N import Main, Environment, PretixAPI, DataTools
 except ImportError:
     raise ImportError("Could not import P2N.py from current or parent directory.")
 
@@ -44,6 +44,8 @@ class Dataframe:
         self.time_zone = env.get_timezone()
 
         self.raw_df = pretix.get_raw_df()
+
+        self.start_date, self.end_date = pretix.get_event_dates()
         
         # check for new fetched data and raise exception if no new data occured so that Main can skip this run
         pretix.check_for_new_fetched_data(self.raw_df, success_on_last_run)
@@ -135,6 +137,10 @@ class Dataframe:
             .dt.strftime("%Y-%m-%d %H:%M")
         )
 
+        # add column "Geburtstag auf Freizeit" with the value "Ja" if the birthday of the attendee is between start_date and end_date, otherwise empty string
+        birthday_on_camp = DataTools.is_anniversary_in_period(df["Geburtsdatum"], self.start_date, self.end_date)
+        df["Geburtstag auf Freizeit"] = birthday_on_camp.map({True: "Ja", False: ""})
+
         # change all values "sonstige Jugendarbeit" in column "EC-Jugendarbeit" to "Sonstige"
         df["EC-Jugendarbeit"] = df["EC-Jugendarbeit"].replace("sonstige Jugendarbeit", "Sonstige")
 
@@ -161,6 +167,7 @@ class Dataframe:
             "Vegetarier",
             "Sonstiges",
             "Einverständniserklärung",
+            "Geburtstag auf Freizeit",
         ]
         df = df.filter(wanted_columns)
 
@@ -205,6 +212,7 @@ class Dataframe:
             "Bestellnummer",
             "Anmeldedatum",
             "Art",
+            "Geburtstag auf Freizeit",
         ]
         df = df.filter(wanted_columns)
 
@@ -235,6 +243,7 @@ class Dataframe:
             "Nachname",
             "Vorname",
             "Geburtsdatum",
+            "Geburtstag auf Freizeit",
             "Geschlecht",
             "EC-Jugendarbeit",
             "Sonstiges",
@@ -246,6 +255,10 @@ class Dataframe:
             "Anmeldedatum",
         ]
         df = df.filter(wanted_columns)
+
+        # if column "Geburtstag auf Freizeit" is completely empty, drop it
+        if df["Geburtstag auf Freizeit"].isnull().all():
+            df = df.drop(columns=["Geburtstag auf Freizeit"])
         
         # sort (by "Nachname" and then by "Vorname")
         df = df.sort_values(

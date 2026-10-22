@@ -8,7 +8,8 @@ import logging
 from requests.auth import HTTPBasicAuth
 import schedule
 import time
-from datetime import datetime
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 import pytz
 import tempfile
 from pathlib import Path
@@ -587,6 +588,76 @@ class PretixAPI:
         return sorted(all_choices)
 
 
+    def get_event_dates(self) -> tuple[date, date]:
+        """
+        Fetch start and end date of the event from Pretix API.
+
+        Datetimes are converted to the event's timezone before extracting the date,
+        so that events starting/ending around midnight are not shifted by one day.
+        Timezone priority: Pretix event timezone -> Environment timezone -> Europe/Berlin.
+
+        Returns a tuple (start_date, end_date) as datetime.date objects.
+        If the event has no end date, end_date equals start_date.
+        """
+
+        url = f"{self.pretix_api_url}/"
+        r = self.session.get(url)
+        r.raise_for_status()
+        data = r.json()
+
+        if data.get("has_subevents"):
+            raise Exception("Event is an event series (has_subevents = true). Dates of subevents are not supported by get_event_dates().")
+
+        if not data.get("date_from"):
+            raise Exception("Pretix API returned no 'date_from' for this event.")
+
+        # determine timezone: Pretix -> Environment -> Europe/Berlin
+        event_tz = None
+
+        pretix_tz_name = (data.get("timezone") or "").strip()
+        if pretix_tz_name:
+            try:
+                event_tz = ZoneInfo(pretix_tz_name)
+            except Exception:
+                logging.warning(f"Unknown timezone '{pretix_tz_name}' from Pretix. Trying timezone from environment.")
+
+        if event_tz is None:
+            try:
+                env_tz_name = Environment().get_timezone().strip()
+            except ValueError:
+                env_tz_name = ""
+
+            if env_tz_name:
+                try:
+                    event_tz = ZoneInfo(env_tz_name)
+                    logging.warning(f"No valid timezone from Pretix. Using timezone '{env_tz_name}' from environment.")
+                except Exception:
+                    logging.warning(f"Unknown timezone '{env_tz_name}' from environment.")
+
+        if event_tz is None:
+            logging.warning("No valid timezone from Pretix or environment. Falling back to 'Europe/Berlin'.")
+            try:
+                event_tz = ZoneInfo("Europe/Berlin")
+            except Exception as e:
+                raise Exception("No timezone data available on this system. Install the 'tzdata' package (pip install tzdata).") from e
+
+        def _to_local_date(value: str) -> date:
+            # replace "Z" for compatibility with Python < 3.11
+            dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=event_tz)
+            return dt.astimezone(event_tz).date()
+
+        start_date = _to_local_date(data["date_from"])
+        end_date = _to_local_date(data["date_to"]) if data.get("date_to") else start_date
+
+        if end_date < start_date:
+            raise Exception(f"Invalid event dates from Pretix: end ({end_date}) is before start ({start_date}).")
+
+        logging.debug(f"Fetched event dates from Pretix API: {start_date} to {end_date}.")
+
+        return start_date, end_date
+
     def _get_items(self) -> dict:
         """
         Fetch all items from Pretix API and return a mapping of item ID to item name.
@@ -761,6 +832,39 @@ class PretixAPI:
             raise Exception("No changes in data since last fetch.")
         
         self.__class__.last_raw_df = raw_df.copy()
+
+
+class DataTools:
+
+    @staticmethod
+    def is_anniversary_in_period(dates: pd.Series, start_date: date, end_date: date) -> pd.Series:
+        """
+        Check for each date in the series whether its anniversary (day and month, year ignored)
+        lies within the period from start_date to end_date (both inclusive).
+        Typical use case: checking if an attendee has their birthday during the event.
+
+        Periods spanning New Year's Eve are supported.
+        29th of February is handled by comparing all dates in the leap year 2000.
+        Missing or invalid dates result in False.
+
+        Returns a boolean series with the same index as the input series.
+        """
+
+        # set the year of all dates to 2000 (leap year, so 29th of February is valid) to compare only day and month
+        anniversaries = pd.to_datetime(
+            pd.to_datetime(dates, errors="coerce").dt.strftime("2000-%m-%d"),
+            format="%Y-%m-%d",
+            errors="coerce",
+        )
+        start = pd.Timestamp(start_date.replace(year=2000))
+        end = pd.Timestamp(end_date.replace(year=2000))
+
+        if start <= end:
+            # period within one calendar year
+            return anniversaries.between(start, end)
+
+        # period spans New Year's Eve
+        return (anniversaries >= start) | (anniversaries <= end)
     
     
 class FilenameHandling():

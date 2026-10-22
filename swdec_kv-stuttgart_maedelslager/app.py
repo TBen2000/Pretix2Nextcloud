@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 # import P2N.py
 try:
-    from P2N import Main, Environment, PretixAPI
+    from P2N import Main, Environment, PretixAPI, DataTools
 except ImportError:
     raise ImportError("Could not import P2N.py from current or parent directory.")
 
@@ -44,6 +44,8 @@ class Dataframe:
         self.time_zone = env.get_timezone()
 
         self.raw_df = pretix.get_raw_df()
+
+        self.start_date, self.end_date = pretix.get_event_dates()
         
         # check for new fetched data and raise exception if no new data occured so that Main can skip this run
         pretix.check_for_new_fetched_data(self.raw_df, success_on_last_run)
@@ -163,6 +165,10 @@ class Dataframe:
                 "p": "bezahlt",
             }
         )
+
+        # add column "Geburtstag auf dem Lager" with the value "Ja" if the birthday of the attendee is between start_date and end_date, otherwise empty string
+        birthday_on_camp = DataTools.is_anniversary_in_period(df["Geburtsdatum"], self.start_date, self.end_date)
+        df["Geburtstag auf dem Lager"] = birthday_on_camp.map({True: "Ja", False: ""})
         
         
         # filter for columns and set their order
@@ -193,6 +199,7 @@ class Dataframe:
             "Besucht Jungschar",
             "Ort",
             "Sonstiges",
+            "Geburtstag auf dem Lager",
             "Zuschuss beantragt",
             "Einverständniserklärung",
         ]
@@ -260,6 +267,7 @@ class Dataframe:
             "E-Mail",
             "Rechnung - Empfänger",
             "Rechnung - Adresse",
+            "Geburtstag auf dem Lager",
         ]
         df = df.filter(wanted_columns)
 
@@ -288,9 +296,14 @@ class Dataframe:
             "Besucht Jungschar",
             "Ort",
             "Sonstiges",
+            "Geburtstag auf dem Lager",
             "Anmeldedatum",
         ]
         df = df.filter(wanted_columns)
+
+        # if column "Geburtstag auf dem Lager" is completely empty, drop it
+        if df["Geburtstag auf dem Lager"].isnull().all():
+            df = df.drop(columns=["Geburtstag auf dem Lager"])
         
         # sort (by "Nachname" and then by "Vorname")
         df = df.sort_values(
@@ -535,6 +548,7 @@ class Dataframe:
             "Ort",
             "Ernährung",
             "Essensunverträglichkeiten",
+            "Geburtstag auf dem Lager",
             "E-Mail",
             "Rechnung - Empfänger",
             "Notfall-Telefonnummern",

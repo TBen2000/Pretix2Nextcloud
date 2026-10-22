@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 # import P2N.py
 try:
-    from P2N import Main, Environment, PretixAPI
+    from P2N import Main, Environment, PretixAPI, DataTools
 except ImportError:
     raise ImportError("Could not import P2N.py from current or parent directory.")
 
@@ -42,6 +42,9 @@ class Dataframe:
         self.time_zone = env.get_timezone()
 
         self.raw_df = pretix.get_raw_df()
+
+        self.start_date, self.end_date = pretix.get_event_dates()
+
         # check for new fetched data and raise exception if no new data occured so that Main can skip this run
         pretix.check_for_new_fetched_data(self.raw_df, success_on_last_run)
         
@@ -90,6 +93,10 @@ class Dataframe:
             df["Telefonnummer Mitarbeiter"]
         )
 
+        # add column "hat Geburtstag" with the value "Ja" if the birthday of the attendee is between start_date and end_date, otherwise empty string
+        birthday_on_camp = DataTools.is_anniversary_in_period(df["Geburtsdatum"], self.start_date, self.end_date)
+        df["hat Geburtstag"] = birthday_on_camp.map({True: "Ja", False: ""})
+
         # filter for columns and set their order
         wanted_columns = [
             "Ortschaft",
@@ -101,6 +108,7 @@ class Dataframe:
             "Ernährung",
             "Essensunverträglichkeiten",
             "Sonstiges",
+            "hat Geburtstag",
             "Ortsverantwortlicher",
             "Fahrer Angebot",
             "Anmeldedatum",
@@ -143,10 +151,15 @@ class Dataframe:
             "Ernährung",
             "Essensunverträglichkeiten",
             "Sonstiges",
+            "hat Geburtstag",
             "Fahrer Angebot",
             "Anmeldedatum",
         ]
         df = df.filter(wanted_columns)
+
+        # if column "hat Geburtstag" is completely empty, drop it
+        if df["hat Geburtstag"].isnull().all():
+            df = df.drop(columns=["hat Geburtstag"])
 
         # sort by town:
         df_by_town_dict = {}
